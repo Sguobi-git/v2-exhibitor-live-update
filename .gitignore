@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+
+# Production builds
+build/
+dist/
+
+# Environment files
+.env
+credentials.json
+
+# OS files
+.DS_Store
+Thumbs.db
