@@ -115,8 +115,9 @@ function App() {
   };
 
   // API calls to your Abacus AI Flask backend
-  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-  // const API_BASE = 'https://exhibitor-live-update.onrender.com/api';
+  // const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  const API_BASE = 'https://exhibitor-backend.onrender.com/api';
+
 
   const fetchAbacusStatus = async () => {
     try {
