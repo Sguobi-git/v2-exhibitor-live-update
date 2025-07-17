@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { User, Lock, ArrowRight, Package, Truck, CheckCircle2, Clock, AlertCircle, MapPin, Calendar, BarChart3, Star, Zap, Bell, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Lock, ArrowRight, Package, Truck, CheckCircle2, Clock, AlertCircle, MapPin, Star, Zap, Bell, RefreshCw } from 'lucide-react';
 
 function App() {
   const [selectedExhibitor, setSelectedExhibitor] = useState('');
@@ -115,9 +115,7 @@ function App() {
   };
 
   // API calls to your Abacus AI Flask backend
-  // const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
   const API_BASE = 'https://exhibitor-backend.onrender.com/api';
-
 
   const fetchAbacusStatus = async () => {
     try {
@@ -130,7 +128,67 @@ function App() {
     }
   };
 
-  const fetchOrders = async (exhibitorName) => {
+  const generateNotifications = useCallback((ordersData) => {
+    const notifications = [];
+    ordersData.forEach((order) => {
+      if (order.status === 'in-route') {
+        notifications.push({
+          id: Math.random(),
+          message: `${order.item} is in route from warehouse!`,
+          time: `${Math.floor(Math.random() * 30) + 1} min ago`,
+          type: 'delivery'
+        });
+      } else if (order.status === 'delivered') {
+        notifications.push({
+          id: Math.random(),
+          message: `${order.item} has been delivered`,
+          time: `${Math.floor(Math.random() * 120) + 1} min ago`,
+          type: 'success'
+        });
+      } else if (order.status === 'out-for-delivery') {
+        notifications.push({
+          id: Math.random(),
+          message: `${order.item} is out for delivery!`,
+          time: `${Math.floor(Math.random() * 15) + 1} min ago`,
+          type: 'delivery'
+        });
+      }
+    });
+    setNotifications(notifications.slice(0, 3));
+  }, []);
+
+  const createFallbackOrders = useCallback((exhibitorName) => {
+    // Create sample orders using real Google Sheet structure
+    const realItems = [
+      'Round Table 30" high',
+      'White Side Chair', 
+      'Black Side Chair',
+      'Skirted Table 2\' x 4\' 30" High',
+      'White Stool with back',
+      '2 Meter Curved Counter',
+      'Round Table 42" high',
+      'Arm Light'
+    ];
+
+    const realStatuses = ['delivered', 'in-route', 'in-process', 'out-for-delivery'];
+    
+    return Array.from({length: 6}, (_, i) => ({
+      id: `ABACUS-${exhibitorName.replace(/\s+/g, '-')}-${i + 1}`,
+      item: realItems[i % realItems.length],
+      description: `Real order from Google Sheets via Abacus AI Database`,
+      booth_number: `${Math.floor(Math.random() * 9000) + 1000}`,
+      color: ['White', 'Black', 'Blue'][i % 3],
+      quantity: Math.floor(Math.random() * 5) + 1,
+      status: realStatuses[i % realStatuses.length],
+      order_date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+      comments: 'Synced from Google Sheets',
+      section: `Section ${Math.floor(Math.random() * 3) + 1}`,
+      data_source: 'Abacus AI Enterprise Database',
+      abacus_ai_processed: true
+    }));
+  }, []);
+
+  const fetchOrders = useCallback(async (exhibitorName) => {
     setLoading(true);
     try {
       console.log(`🔍 Fetching orders for: ${exhibitorName}`);
@@ -162,67 +220,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const createFallbackOrders = (exhibitorName) => {
-    // Create sample orders using real Google Sheet structure
-    const realItems = [
-      'Round Table 30" high',
-      'White Side Chair', 
-      'Black Side Chair',
-      'Skirted Table 2\' x 4\' 30" High',
-      'White Stool with back',
-      '2 Meter Curved Counter',
-      'Round Table 42" high',
-      'Arm Light'
-    ];
-
-    const realStatuses = ['delivered', 'in-route', 'in-process', 'out-for-delivery'];
-    
-    return Array.from({length: 6}, (_, i) => ({
-      id: `ABACUS-${exhibitorName.replace(/\s+/g, '-')}-${i + 1}`,
-      item: realItems[i % realItems.length],
-      description: `Real order from Google Sheets via Abacus AI Database`,
-      booth_number: `${Math.floor(Math.random() * 9000) + 1000}`,
-      color: ['White', 'Black', 'Blue'][i % 3],
-      quantity: Math.floor(Math.random() * 5) + 1,
-      status: realStatuses[i % realStatuses.length],
-      order_date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-      comments: 'Synced from Google Sheets',
-      section: `Section ${Math.floor(Math.random() * 3) + 1}`,
-      data_source: 'Abacus AI Enterprise Database',
-      abacus_ai_processed: true
-    }));
-  };
-
-  const generateNotifications = (ordersData) => {
-    const notifications = [];
-    ordersData.forEach((order, index) => {
-      if (order.status === 'in-route') {
-        notifications.push({
-          id: Math.random(),
-          message: `${order.item} is in route from warehouse!`,
-          time: `${Math.floor(Math.random() * 30) + 1} min ago`,
-          type: 'delivery'
-        });
-      } else if (order.status === 'delivered') {
-        notifications.push({
-          id: Math.random(),
-          message: `${order.item} has been delivered`,
-          time: `${Math.floor(Math.random() * 120) + 1} min ago`,
-          type: 'success'
-        });
-      } else if (order.status === 'out-for-delivery') {
-        notifications.push({
-          id: Math.random(),
-          message: `${order.item} is out for delivery!`,
-          time: `${Math.floor(Math.random() * 15) + 1} min ago`,
-          type: 'delivery'
-        });
-      }
-    });
-    setNotifications(notifications.slice(0, 3));
-  };
+  }, [API_BASE, generateNotifications, createFallbackOrders]);
 
   // Auto-refresh orders every 30 seconds when logged in
   useEffect(() => {
@@ -238,7 +236,7 @@ function App() {
         return () => clearInterval(interval);
       }
     }
-  }, [isLoggedIn, selectedExhibitor]);
+  }, [isLoggedIn, selectedExhibitor, exhibitors, fetchOrders]);
 
   // Fetch Abacus AI status on mount
   useEffect(() => {
