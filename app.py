@@ -17,11 +17,16 @@ CORS(app)  # Enable CORS for React app
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# CACHING SYSTEM - Prevent rate limits
+# SMART CACHING SYSTEM - Allows manual refresh override
 CACHE = {}
-CACHE_DURATION = 300  # 5 minutes cache
+CACHE_DURATION = 120  # 2 minutes cache for auto-refresh
+FORCE_REFRESH_PARAM = 'force_refresh'
 
-def get_from_cache(key):
+def get_from_cache(key, allow_cache=True):
+    if not allow_cache:
+        logger.info(f"Cache bypassed for {key} (manual refresh)")
+        return None
+        
     if key in CACHE:
         data, timestamp = CACHE[key]
         if datetime.now() - timestamp < timedelta(seconds=CACHE_DURATION):
@@ -122,14 +127,15 @@ def get_mock_orders():
         }
     ]
 
-def load_orders_from_sheets():
-    """Load orders from Google Sheets with caching"""
+def load_orders_from_sheets(force_refresh=False):
+    """Load orders from Google Sheets with smart caching"""
     cache_key = "all_orders"
     
-    # Try cache first
-    cached_data = get_from_cache(cache_key)
-    if cached_data:
-        return cached_data
+    # Check cache first (unless force refresh)
+    if not force_refresh:
+        cached_data = get_from_cache(cache_key, allow_cache=True)
+        if cached_data:
+            return cached_data
     
     try:
         if not gs_manager:
@@ -147,14 +153,17 @@ def load_orders_from_sheets():
             # If it's a list (not empty), parse it
             if isinstance(data, list):
                 all_orders = gs_manager.parse_orders_data(data)
+                logger.info(f"Loaded {len(all_orders)} orders from Google Sheets (direct)")
             else:
                 # If it has .empty attribute (pandas DataFrame)
                 if hasattr(data, 'empty') and not data.empty:
                     all_orders = gs_manager.parse_orders_data(data)
+                    logger.info(f"Loaded {len(all_orders)} orders from Google Sheets (dataframe)")
             
             if all_orders:
-                logger.info(f"Loaded {len(all_orders)} orders from Google Sheets")
                 set_cache(cache_key, all_orders)
+                if force_refresh:
+                    logger.info("🔄 FORCE REFRESH: Fresh data loaded from Google Sheets")
                 return all_orders
         
         logger.warning("No data found in Google Sheets, using mock data")
@@ -216,31 +225,33 @@ def health_check():
 
 @app.route('/api/abacus-status', methods=['GET'])
 def abacus_status():
-    """Abacus AI status endpoint"""
+    """System status endpoint"""
     return jsonify({
-        'platform': 'Abacus AI Enterprise',
+        'platform': 'Expo Convention Contractors',
         'status': 'connected',
         'database': 'Google Sheets Integration',
         'last_sync': datetime.now().isoformat(),
-        'version': '2.1.0',
+        'version': '3.0.0',
         'cache_enabled': True
     })
 
 @app.route('/api/exhibitors', methods=['GET'])
 def get_exhibitors():
-    """Get list of all exhibitors with caching"""
+    """Get list of all exhibitors with smart caching"""
     cache_key = "exhibitors"
+    force_refresh = request.args.get(FORCE_REFRESH_PARAM, 'false').lower() == 'true'
     
-    # Try cache first
-    cached_data = get_from_cache(cache_key)
-    if cached_data:
-        return jsonify(cached_data)
+    # Try cache first (unless force refresh)
+    if not force_refresh:
+        cached_data = get_from_cache(cache_key, allow_cache=True)
+        if cached_data:
+            return jsonify(cached_data)
     
     try:
         exhibitors = []
         
         # Get exhibitors from orders data
-        orders = load_orders_from_sheets()
+        orders = load_orders_from_sheets(force_refresh=force_refresh)
         exhibitors_dict = {}
         
         for order in orders:
@@ -269,23 +280,26 @@ def get_exhibitors():
 
 @app.route('/api/orders', methods=['GET'])
 def get_all_orders():
-    """Get all orders with caching"""
-    orders = load_orders_from_sheets()
+    """Get all orders with smart caching"""
+    force_refresh = request.args.get(FORCE_REFRESH_PARAM, 'false').lower() == 'true'
+    orders = load_orders_from_sheets(force_refresh=force_refresh)
     return jsonify(orders)
 
 @app.route('/api/orders/exhibitor/<exhibitor_name>', methods=['GET'])
 def get_orders_by_exhibitor(exhibitor_name):
-    """Get orders for a specific exhibitor with caching"""
+    """Get orders for a specific exhibitor with smart caching"""
     cache_key = f"exhibitor_{exhibitor_name}"
+    force_refresh = request.args.get(FORCE_REFRESH_PARAM, 'false').lower() == 'true'
     
-    # Try cache first
-    cached_data = get_from_cache(cache_key)
-    if cached_data:
-        return jsonify(cached_data)
+    # Try cache first (unless force refresh)
+    if not force_refresh:
+        cached_data = get_from_cache(cache_key, allow_cache=True)
+        if cached_data:
+            return jsonify(cached_data)
     
     try:
         # Get all orders and filter
-        all_orders = load_orders_from_sheets()
+        all_orders = load_orders_from_sheets(force_refresh=force_refresh)
         exhibitor_orders = [
             order for order in all_orders 
             if order['exhibitor_name'].lower() == exhibitor_name.lower()
@@ -298,10 +312,15 @@ def get_orders_by_exhibitor(exhibitor_name):
             'orders': exhibitor_orders,
             'total_orders': len(exhibitor_orders),
             'delivered_orders': delivered_count,
-            'last_updated': datetime.now().isoformat()
+            'last_updated': datetime.now().isoformat(),
+            'force_refreshed': force_refresh
         }
         
         set_cache(cache_key, result)
+        
+        if force_refresh:
+            logger.info(f"🔄 MANUAL REFRESH: Fresh data for {exhibitor_name}")
+        
         return jsonify(result)
         
     except Exception as e:
@@ -318,7 +337,8 @@ def get_orders_by_exhibitor(exhibitor_name):
 @app.route('/api/orders/booth/<booth_number>', methods=['GET'])
 def get_orders_by_booth(booth_number):
     """Get orders for a specific booth"""
-    orders = load_orders_from_sheets()
+    force_refresh = request.args.get(FORCE_REFRESH_PARAM, 'false').lower() == 'true'
+    orders = load_orders_from_sheets(force_refresh=force_refresh)
     booth_orders = [order for order in orders if order['booth_number'] == booth_number]
     
     return jsonify({
@@ -331,7 +351,8 @@ def get_orders_by_booth(booth_number):
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
     """Get overall statistics"""
-    orders = load_orders_from_sheets()
+    force_refresh = request.args.get(FORCE_REFRESH_PARAM, 'false').lower() == 'true'
+    orders = load_orders_from_sheets(force_refresh=force_refresh)
     
     stats = {
         'total_orders': len(orders),
@@ -347,10 +368,10 @@ def get_stats():
 
 @app.route('/api/clear-cache', methods=['POST'])
 def clear_cache():
-    """Clear all cached data - useful for testing"""
+    """Clear all cached data - useful for forcing fresh data"""
     global CACHE
     CACHE = {}
-    logger.info("Cache cleared")
+    logger.info("🗑️ Cache cleared manually")
     return jsonify({'message': 'Cache cleared successfully'})
 
 if __name__ == '__main__':
