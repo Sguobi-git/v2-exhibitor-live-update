@@ -186,14 +186,15 @@ function App() {
     }));
   }, []);
 
-  const fetchOrders = useCallback(async (exhibitorName) => {
+  const fetchOrders = useCallback(async (exhibitorName, forceRefresh = false) => {
     if (loading) return;
     
     setLoading(true);
     try {
-      console.log(`🔍 Fetching orders for: ${exhibitorName}`);
+      console.log(`🔍 Fetching orders for: ${exhibitorName}${forceRefresh ? ' (FORCE REFRESH)' : ''}`);
       
-      const response = await fetch(`${API_BASE}/orders/exhibitor/${encodeURIComponent(exhibitorName)}`);
+      const url = `${API_BASE}/orders/exhibitor/${encodeURIComponent(exhibitorName)}${forceRefresh ? '?force_refresh=true' : ''}`;
+      const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch orders');
       
       const data = await response.json();
@@ -203,6 +204,10 @@ function App() {
       setOrders(sortedOrders);
       setLastUpdated(new Date(data.last_updated));
       generateNotifications(sortedOrders);
+      
+      if (forceRefresh) {
+        console.log('🔄 MANUAL REFRESH COMPLETED - Fresh data from Google Sheets');
+      }
       
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -221,11 +226,12 @@ function App() {
     if (isLoggedIn && selectedExhibitor) {
       const exhibitor = exhibitors.find(e => e.id === selectedExhibitor);
       if (exhibitor) {
-        fetchOrders(exhibitor.name);
+        // Initial fetch (uses cache if available)
+        fetchOrders(exhibitor.name, false);
         
         const interval = setInterval(() => {
-          fetchOrders(exhibitor.name);
-        }, 300000);
+          fetchOrders(exhibitor.name, false); // Auto-refresh uses cache
+        }, 120000); // Auto-refresh every 2 minutes
         
         return () => clearInterval(interval);
       }
@@ -246,7 +252,8 @@ function App() {
     if (selectedExhibitor && !loading) {
       const exhibitor = exhibitors.find(e => e.id === selectedExhibitor);
       if (exhibitor) {
-        fetchOrders(exhibitor.name);
+        // Force refresh bypasses cache and gets fresh data from Google Sheets
+        fetchOrders(exhibitor.name, true);
       }
     }
   };
