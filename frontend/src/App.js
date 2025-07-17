@@ -280,33 +280,20 @@ function App() {
     );
   };
 
-  // Expo CCI Logo Component - Proper layout from brand manual
-  const ExpoLogo = ({ size = "large", showText = true, color = "black" }) => {
+  // Actual Expo CCI Logo Component
+  const ExpoLogo = ({ size = "large", color = "black" }) => {
     const isLarge = size === "large";
-    const squareSize = isLarge ? "w-3 h-3" : "w-2 h-2";
-    const textSize = isLarge ? "text-2xl" : "text-lg";
-    const spacing = isLarge ? "space-x-4" : "space-x-2";
-    
-    const squareColor = color === "white" ? "bg-white" : "bg-black";
-    const textColor = color === "white" ? "text-white" : "text-black";
+    const logoHeight = isLarge ? "h-12" : "h-8";
+    const filter = color === "white" ? "brightness(0) invert(1)" : "";
     
     return (
-      <div className={`flex items-center ${spacing}`}>
-        {/* Correct Expo CCI isotype layout */}
-        <div className="flex flex-col items-start space-y-0.5">
-          <div className="flex space-x-0.5">
-            <div className={`${squareSize} ${squareColor}`}></div>
-            <div className={`${squareSize} ${squareColor}`}></div>
-          </div>
-          <div className="flex space-x-0.5">
-            <div className={`${squareSize} ${squareColor}`}></div>
-          </div>
-        </div>
-        {showText && (
-          <div className={`${textColor} font-bold ${textSize} tracking-wider`}>
-            expo
-          </div>
-        )}
+      <div className="flex items-center">
+        <img 
+          src="https://expocci.com/wp-content/uploads/2022/01/expo_blanco.png" 
+          alt="Expo Convention Contractors"
+          className={`${logoHeight} w-auto object-contain ${filter}`}
+          style={{ filter: color === "white" ? "brightness(0) invert(1)" : "none" }}
+        />
       </div>
     );
   };
@@ -620,7 +607,7 @@ function App() {
 
                 {/* Expo CCI Footer */}
                 <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
-                  <ExpoLogo size="small" showText={false} />
+                  <ExpoLogo size="small" />
                   <span className="text-xs text-gray-400">Managed by Expo Convention Contractors</span>
                 </div>
               </div>
@@ -631,8 +618,10 @@ function App() {
         {/* No orders message */}
         {!loading && orders.length === 0 && (
           <div className="text-center py-12">
-            <ExpoLogo size="large" showText={false} />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2 mt-4">No Orders Found</h3>
+            <div className="mb-4">
+              <ExpoLogo size="large" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Orders Found</h3>
             <p className="text-gray-600">No orders found for {exhibitor.name} in our system.</p>
             <p className="text-gray-500 text-sm mt-2">Managed by Expo Convention Contractors</p>
           </div>
