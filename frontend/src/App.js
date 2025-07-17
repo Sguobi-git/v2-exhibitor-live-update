@@ -117,7 +117,7 @@ function App() {
   // API calls to your Abacus AI Flask backend
   const API_BASE = 'https://exhibitor-backend.onrender.com/api';
 
-  const fetchAbacusStatus = async () => {
+  const fetchAbacusStatus = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE}/abacus-status`);
       const data = await response.json();
@@ -126,7 +126,7 @@ function App() {
     } catch (error) {
       console.error('Error fetching Abacus AI status:', error);
     }
-  };
+  }, [API_BASE]);
 
   const generateNotifications = useCallback((ordersData) => {
     const notifications = [];
@@ -189,6 +189,8 @@ function App() {
   }, []);
 
   const fetchOrders = useCallback(async (exhibitorName) => {
+    if (loading) return; // Prevent multiple simultaneous calls
+    
     setLoading(true);
     try {
       console.log(`🔍 Fetching orders for: ${exhibitorName}`);
@@ -220,28 +222,30 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, [API_BASE, generateNotifications, createFallbackOrders]);
+  }, [API_BASE, generateNotifications, createFallbackOrders, loading]);
 
-  // Auto-refresh orders every 30 seconds when logged in
+  // FIXED: Auto-refresh - only runs once when exhibitor changes, then every 5 minutes
   useEffect(() => {
     if (isLoggedIn && selectedExhibitor) {
       const exhibitor = exhibitors.find(e => e.id === selectedExhibitor);
       if (exhibitor) {
+        // Initial fetch
         fetchOrders(exhibitor.name);
         
+        // Set up interval for every 5 minutes (not 30 seconds!)
         const interval = setInterval(() => {
           fetchOrders(exhibitor.name);
-        }, 30000); // Refresh every 30 seconds
+        }, 300000); // 5 minutes = 300000ms
         
         return () => clearInterval(interval);
       }
     }
-  }, [isLoggedIn, selectedExhibitor, exhibitors, fetchOrders]);
+  }, [isLoggedIn, selectedExhibitor]); // REMOVED fetchOrders and exhibitors from dependencies
 
-  // Fetch Abacus AI status on mount
+  // Fetch Abacus AI status on mount only
   useEffect(() => {
     fetchAbacusStatus();
-  }, []);
+  }, [fetchAbacusStatus]);
 
   const handleLogin = () => {
     if (selectedExhibitor) {
@@ -250,7 +254,7 @@ function App() {
   };
 
   const handleRefresh = () => {
-    if (selectedExhibitor) {
+    if (selectedExhibitor && !loading) {
       const exhibitor = exhibitors.find(e => e.id === selectedExhibitor);
       if (exhibitor) {
         fetchOrders(exhibitor.name);
@@ -467,7 +471,7 @@ function App() {
               <h3 className="text-lg font-semibold text-white">Pending</h3>
             </div>
             <div className="text-3xl font-bold text-yellow-400">{pendingOrders}</div>
-            <div className="text-xs text-gray-400 mt-1">Real-time updates</div>
+            <div className="text-xs text-gray-400 mt-1">Auto-refresh every 5 min</div>
           </div>
         </div>
 
