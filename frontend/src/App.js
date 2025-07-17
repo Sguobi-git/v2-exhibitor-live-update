@@ -17,7 +17,7 @@ function App() {
       name: 'nevetal',
       booth: '3005',
       avatar: '🏨',
-      color: 'from-gray-700 to-gray-900',
+      color: 'from-blue-600 to-cyan-600',
       company: 'Event Services'
     },
     {
@@ -25,7 +25,7 @@ function App() {
       name: 'Saint Lucia Tourism Authority',
       booth: 'B-156',
       avatar: '🏝️',
-      color: 'from-teal-600 to-teal-800',
+      color: 'from-green-600 to-emerald-600',
       company: 'Tourism & Travel'
     },
     {
@@ -33,7 +33,7 @@ function App() {
       name: 'Costa Rica',
       booth: 'C-089',
       avatar: '🌿',
-      color: 'from-teal-500 to-teal-700',
+      color: 'from-emerald-600 to-teal-600',
       company: 'Tourism Board'
     },
     {
@@ -41,7 +41,7 @@ function App() {
       name: 'Discover Dominica Authority',
       booth: 'D-312',
       avatar: '🏞️',
-      color: 'from-gray-600 to-gray-800',
+      color: 'from-purple-600 to-pink-600',
       company: 'Tourism Authority'
     },
     {
@@ -49,7 +49,7 @@ function App() {
       name: 'Great Italy Tour & Events',
       booth: 'E-445',
       avatar: '🇮🇹',
-      color: 'from-teal-700 to-gray-800',
+      color: 'from-red-600 to-orange-600',
       company: 'Tour Operator'
     },
     {
@@ -57,42 +57,43 @@ function App() {
       name: 'Quench USA',
       booth: 'F-201',
       avatar: '💧',
-      color: 'from-teal-500 to-teal-600',
+      color: 'from-cyan-600 to-blue-600',
       company: 'Beverage Solutions'
     }
   ];
 
+  // Keeping original status colors exactly as they were
   const orderStatuses = {
     'delivered': { 
       label: 'Delivered', 
       progress: 100, 
-      color: 'from-teal-500 to-teal-600',
+      color: 'from-green-500 to-emerald-500',
       icon: CheckCircle2,
-      bgColor: 'bg-teal-500/20 text-teal-400 border-teal-500/30',
+      bgColor: 'bg-green-500/20 text-green-400',
       priority: 5
     },
     'out-for-delivery': { 
       label: 'Out for Delivery', 
       progress: 75, 
-      color: 'from-teal-400 to-teal-500',
+      color: 'from-blue-500 to-cyan-500',
       icon: Truck,
-      bgColor: 'bg-teal-400/20 text-teal-300 border-teal-400/30',
+      bgColor: 'bg-blue-500/20 text-blue-400',
       priority: 3
     },
     'in-route': { 
       label: 'In Route from Warehouse', 
       progress: 50, 
-      color: 'from-gray-400 to-gray-500',
+      color: 'from-yellow-500 to-orange-500',
       icon: MapPin,
-      bgColor: 'bg-gray-400/20 text-gray-300 border-gray-400/30',
+      bgColor: 'bg-yellow-500/20 text-yellow-400',
       priority: 2
     },
     'in-process': { 
       label: 'In Process', 
       progress: 25, 
-      color: 'from-gray-500 to-gray-600',
+      color: 'from-purple-500 to-pink-500',
       icon: Clock,
-      bgColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+      bgColor: 'bg-purple-500/20 text-purple-400',
       priority: 1
     },
     'cancelled': { 
@@ -100,7 +101,7 @@ function App() {
       progress: 0, 
       color: 'from-red-500 to-red-600',
       icon: AlertCircle,
-      bgColor: 'bg-red-500/20 text-red-400 border-red-500/30',
+      bgColor: 'bg-red-500/20 text-red-400',
       priority: 4
     }
   };
@@ -255,26 +256,57 @@ function App() {
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-300 font-medium tracking-wide">DELIVERY PROGRESS</span>
-          <span className="text-white font-bold text-lg">{statusInfo.progress}%</span>
+          <span className="text-gray-700 font-medium">Delivery Progress</span>
+          <span className="text-gray-900 font-bold">{statusInfo.progress}%</span>
         </div>
-        <div className="relative w-full bg-gray-800/50 rounded-full h-2 border border-gray-700/50">
+        <div className="relative w-full bg-gray-200 rounded-full h-3">
           <div 
-            className={`bg-gradient-to-r ${statusInfo.color} h-2 rounded-full transition-all duration-1000 relative overflow-hidden shadow-lg`}
+            className={`bg-gradient-to-r ${statusInfo.color} h-3 rounded-full transition-all duration-1000 relative overflow-hidden`}
             style={{ width: `${statusInfo.progress}%` }}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent w-16 animate-sweep"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent w-20 animate-sweep"></div>
           </div>
         </div>
         <style jsx>{`
           @keyframes sweep {
-            0% { transform: translateX(-50px); }
+            0% { transform: translateX(-100px); }
             100% { transform: translateX(calc(100vw)); }
           }
           .animate-sweep {
-            animation: sweep 3s ease-in-out infinite;
+            animation: sweep 2s ease-in-out infinite;
           }
         `}</style>
+      </div>
+    );
+  };
+
+  // Expo CCI Logo Component - Proper layout from brand manual
+  const ExpoLogo = ({ size = "large", showText = true, color = "black" }) => {
+    const isLarge = size === "large";
+    const squareSize = isLarge ? "w-3 h-3" : "w-2 h-2";
+    const textSize = isLarge ? "text-2xl" : "text-lg";
+    const spacing = isLarge ? "space-x-4" : "space-x-2";
+    
+    const squareColor = color === "white" ? "bg-white" : "bg-black";
+    const textColor = color === "white" ? "text-white" : "text-black";
+    
+    return (
+      <div className={`flex items-center ${spacing}`}>
+        {/* Correct Expo CCI isotype layout */}
+        <div className="flex flex-col items-start space-y-0.5">
+          <div className="flex space-x-0.5">
+            <div className={`${squareSize} ${squareColor}`}></div>
+            <div className={`${squareSize} ${squareColor}`}></div>
+          </div>
+          <div className="flex space-x-0.5">
+            <div className={`${squareSize} ${squareColor}`}></div>
+          </div>
+        </div>
+        {showText && (
+          <div className={`${textColor} font-bold ${textSize} tracking-wider`}>
+            expo
+          </div>
+        )}
       </div>
     );
   };
@@ -282,85 +314,69 @@ function App() {
   // Login Screen
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-6 relative overflow-hidden">
-        {/* Sophisticated geometric background */}
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center p-6">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-teal-500/10 to-transparent rounded-full blur-3xl"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-bl from-gray-600/10 to-transparent rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-gradient-to-tr from-teal-400/5 to-transparent rounded-full blur-3xl"></div>
-          
-          {/* Geometric patterns inspired by expo booth layouts */}
-          <div className="absolute top-10 left-10 w-3 h-3 bg-teal-500/30 rotate-45"></div>
-          <div className="absolute top-20 right-20 w-2 h-2 bg-gray-500/40 rotate-45"></div>
-          <div className="absolute bottom-20 left-20 w-4 h-4 bg-teal-400/20 rotate-45"></div>
-          <div className="absolute bottom-10 right-10 w-3 h-3 bg-gray-400/30 rotate-45"></div>
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-teal-100/40 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gray-100/60 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 right-1/3 w-48 h-48 bg-teal-50/60 rounded-full blur-3xl"></div>
         </div>
 
-        <div className="relative w-full max-w-md z-10">
-          <div className="bg-black/40 backdrop-blur-xl rounded-3xl p-8 border border-gray-700/50 shadow-2xl">
+        <div className="relative w-full max-w-md">
+          <div className="bg-white/90 backdrop-blur-lg rounded-3xl p-8 border border-gray-200 shadow-2xl">
             <div className="text-center mb-8">
-              {/* Expo CCI inspired logo area */}
-              <div className="relative mb-6">
-                <div className="flex items-center justify-center space-x-1 mb-2">
-                  <div className="w-4 h-4 bg-gradient-to-br from-teal-500 to-teal-600 rotate-45 shadow-lg"></div>
-                  <div className="w-4 h-4 bg-gradient-to-br from-gray-600 to-gray-700 rotate-45 shadow-lg"></div>
-                  <div className="w-4 h-4 bg-gradient-to-br from-teal-400 to-teal-500 rotate-45 shadow-lg"></div>
-                </div>
+              <div className="mb-6">
+                <ExpoLogo size="large" />
               </div>
               
-              <h1 className="text-3xl font-bold text-white mb-2 tracking-wide">EXPOFLOW</h1>
-              <p className="text-teal-400 font-medium tracking-widest text-sm">EXPO CONVENTION CONTRACTORS</p>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">ExpoFlow</h1>
+              <p className="text-teal-600 font-medium">Order Tracking System</p>
               
               <div className="flex items-center justify-center space-x-2 mt-4">
-                <Building2 className="w-4 h-4 text-teal-400" />
-                <span className="text-teal-400 text-sm font-medium">Professional Exhibition Management</span>
+                <Building2 className="w-4 h-4 text-teal-600" />
+                <span className="text-gray-600 text-sm">Expo Convention Contractors</span>
               </div>
               
               {abacusStatus && (
-                <div className="mt-3 text-xs text-gray-400 flex items-center justify-center space-x-1">
+                <div className="mt-3 text-xs text-gray-500 flex items-center justify-center space-x-1">
                   <Shield className="w-3 h-3" />
-                  <span>System Online • Real-time Tracking</span>
+                  <span>System Online</span>
                 </div>
               )}
             </div>
 
             <div className="space-y-3 mb-8">
-              <label className="block text-sm font-medium text-gray-300 mb-4 text-center tracking-wide">
-                SELECT YOUR COMPANY
+              <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
+                Select Your Company
               </label>
               {exhibitors.map((exhibitor) => (
                 <div
                   key={exhibitor.id}
                   className={`relative cursor-pointer transition-all duration-300 ${
-                    selectedExhibitor === exhibitor.id ? 'transform scale-[1.02]' : 'hover:scale-[1.01]'
+                    selectedExhibitor === exhibitor.id ? 'transform scale-105' : 'hover:scale-102'
                   }`}
                   onClick={() => setSelectedExhibitor(exhibitor.id)}
                 >
                   <div className={`
-                    p-4 rounded-2xl border transition-all duration-300 relative overflow-hidden
+                    p-4 rounded-2xl border-2 transition-all duration-300
                     ${selectedExhibitor === exhibitor.id
-                      ? 'border-teal-500/50 bg-gradient-to-br from-teal-500/10 to-gray-800/50 shadow-lg shadow-teal-500/20'
-                      : 'border-gray-700/50 bg-gradient-to-br from-gray-800/30 to-black/30 hover:border-gray-600/50'
+                      ? 'border-teal-400 bg-teal-50 shadow-lg'
+                      : 'border-gray-200 bg-white hover:bg-gray-50'
                     }
                   `}>
-                    {selectedExhibitor === exhibitor.id && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-teal-500/5 to-transparent"></div>
-                    )}
-                    
-                    <div className="flex items-center space-x-4 relative z-10">
+                    <div className="flex items-center space-x-4">
                       <div className={`
-                        w-12 h-12 rounded-xl bg-gradient-to-br ${exhibitor.color} 
-                        flex items-center justify-center text-2xl shadow-lg border border-gray-600/30
+                        w-12 h-12 rounded-xl bg-gradient-to-r ${exhibitor.color} 
+                        flex items-center justify-center text-2xl shadow-lg
                       `}>
                         {exhibitor.avatar}
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-semibold text-white tracking-wide">{exhibitor.name}</h3>
-                        <p className="text-sm text-gray-300">{exhibitor.company}</p>
-                        <p className="text-xs text-teal-400 font-medium">Booth {exhibitor.booth}</p>
+                        <h3 className="font-semibold text-gray-900">{exhibitor.name}</h3>
+                        <p className="text-sm text-gray-600">{exhibitor.company}</p>
+                        <p className="text-xs text-teal-600 font-medium">Booth {exhibitor.booth}</p>
                       </div>
                       {selectedExhibitor === exhibitor.id && (
-                        <div className="text-teal-400">
+                        <div className="text-teal-600">
                           <ArrowRight className="w-5 h-5" />
                         </div>
                       )}
@@ -374,25 +390,22 @@ function App() {
               onClick={handleLogin}
               disabled={!selectedExhibitor}
               className={`
-                w-full py-4 rounded-2xl font-semibold text-white transition-all duration-300 relative overflow-hidden
+                w-full py-4 rounded-2xl font-semibold text-white transition-all duration-300
                 ${selectedExhibitor
-                  ? 'bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 shadow-lg hover:shadow-teal-500/20 border border-teal-500/30'
-                  : 'bg-gray-700/50 cursor-not-allowed border border-gray-600/30'
+                  ? 'bg-gradient-to-r from-teal-600 to-teal-700 hover:shadow-lg hover:scale-105 active:scale-95'
+                  : 'bg-gray-400 cursor-not-allowed'
                 }
               `}
             >
-              <div className="flex items-center justify-center space-x-2 relative z-10">
+              <div className="flex items-center justify-center space-x-2">
                 <Lock className="w-5 h-5" />
-                <span className="tracking-wide">ACCESS YOUR ORDERS</span>
+                <span>Access Your Orders</span>
               </div>
-              {selectedExhibitor && (
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 animate-pulse"></div>
-              )}
             </button>
 
             <div className="text-center mt-6">
-              <p className="text-xs text-gray-500 tracking-wide">
-                REAL-TIME TRACKING • PROFESSIONAL SERVICE • MAXIMUM EXPOSURE
+              <p className="text-xs text-gray-500">
+                Professional Exhibition Management • Real-time Updates
               </p>
             </div>
           </div>
@@ -407,40 +420,29 @@ function App() {
   const pendingOrders = orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-6 relative">
-      {/* Background pattern */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-5">
-        <div className="absolute top-0 left-0 w-full h-full" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2319BABA' fill-opacity='0.1'%3E%3Cpath d='M30 30h30v30H30V30z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}></div>
-      </div>
-
-      <div className="max-w-7xl mx-auto relative z-10">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white p-6">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-black/40 backdrop-blur-xl rounded-3xl p-6 border border-gray-700/50 shadow-2xl mb-8">
+        <div className="bg-white/90 backdrop-blur-lg rounded-3xl p-6 border border-gray-200 shadow-xl mb-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-3">
-                <div className="flex space-x-1">
-                  <div className="w-3 h-3 bg-gradient-to-br from-teal-500 to-teal-600 rotate-45"></div>
-                  <div className="w-3 h-3 bg-gradient-to-br from-gray-600 to-gray-700 rotate-45"></div>
-                  <div className="w-3 h-3 bg-gradient-to-br from-teal-400 to-teal-500 rotate-45"></div>
-                </div>
-                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${exhibitor.color} flex items-center justify-center text-3xl border border-gray-600/30 shadow-lg`}>
+              <div className="flex items-center space-x-4">
+                <ExpoLogo size="small" />
+                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${exhibitor.color} flex items-center justify-center text-3xl shadow-lg`}>
                   {exhibitor.avatar}
                 </div>
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-white tracking-wide">{exhibitor.name}</h1>
-                <p className="text-gray-300">{exhibitor.company} • <span className="text-teal-400">Booth {exhibitor.booth}</span></p>
+                <h1 className="text-3xl font-bold text-gray-900">{exhibitor.name}</h1>
+                <p className="text-gray-600">{exhibitor.company} • <span className="text-teal-600">Booth {exhibitor.booth}</span></p>
                 <div className="flex items-center space-x-4 mt-2">
-                  <span className="text-sm text-teal-400 flex items-center space-x-1">
+                  <span className="text-sm text-teal-600 flex items-center space-x-1">
                     <Award className="w-4 h-4" />
                     <span>Expo Convention Contractors</span>
                   </span>
-                  <span className="text-sm text-gray-400">Real-time Order Tracking</span>
+                  <span className="text-sm text-gray-500">Live Order Tracking</span>
                   {lastUpdated && (
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-400">
                       Updated: {lastUpdated.toLocaleTimeString()}
                     </span>
                   )}
@@ -451,19 +453,19 @@ function App() {
               <button 
                 onClick={handleRefresh}
                 disabled={loading}
-                className="p-3 bg-gray-800/50 hover:bg-gray-700/50 text-white rounded-2xl transition-all duration-300 border border-gray-600/50 disabled:opacity-50 backdrop-blur-sm"
+                className="p-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl transition-all duration-300 border border-gray-200 disabled:opacity-50"
               >
                 <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
               </button>
               <div className="relative">
-                <Bell className="w-6 h-6 text-white cursor-pointer hover:text-teal-400 transition-colors" />
+                <Bell className="w-6 h-6 text-gray-600 cursor-pointer hover:text-teal-600 transition-colors" />
                 {notifications.length > 0 && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-teal-500 rounded-full animate-pulse shadow-lg"></div>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-teal-500 rounded-full animate-pulse"></div>
                 )}
               </div>
               <button 
                 onClick={() => setIsLoggedIn(false)}
-                className="px-6 py-3 bg-gray-800/50 hover:bg-gray-700/50 text-white rounded-2xl transition-all duration-300 border border-gray-600/50 backdrop-blur-sm"
+                className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl transition-all duration-300 border border-gray-200"
               >
                 Sign Out
               </button>
@@ -473,40 +475,40 @@ function App() {
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+          <div className="bg-white/90 backdrop-blur-lg rounded-2xl p-6 border border-gray-200 shadow-lg">
             <div className="flex items-center space-x-3 mb-4">
-              <Package className="w-8 h-8 text-teal-400" />
-              <h3 className="text-lg font-semibold text-white tracking-wide">TOTAL ORDERS</h3>
+              <Package className="w-8 h-8 text-teal-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Total Orders</h3>
             </div>
-            <div className="text-3xl font-bold text-teal-400 mb-1">{orders.length}</div>
-            <div className="text-xs text-gray-400 tracking-wide">EXPO CCI MANAGED</div>
+            <div className="text-3xl font-bold text-teal-600">{orders.length}</div>
+            <div className="text-xs text-gray-500 mt-1">Managed by Expo CCI</div>
           </div>
-          <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+          <div className="bg-white/90 backdrop-blur-lg rounded-2xl p-6 border border-gray-200 shadow-lg">
             <div className="flex items-center space-x-3 mb-4">
-              <CheckCircle2 className="w-8 h-8 text-teal-500" />
-              <h3 className="text-lg font-semibold text-white tracking-wide">DELIVERED</h3>
+              <CheckCircle2 className="w-8 h-8 text-green-500" />
+              <h3 className="text-lg font-semibold text-gray-900">Delivered</h3>
             </div>
-            <div className="text-3xl font-bold text-teal-500 mb-1">{deliveredOrders}</div>
-            <div className="text-xs text-gray-400 tracking-wide">COMPLETED INSTALLATIONS</div>
+            <div className="text-3xl font-bold text-green-500">{deliveredOrders}</div>
+            <div className="text-xs text-gray-500 mt-1">Completed</div>
           </div>
-          <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+          <div className="bg-white/90 backdrop-blur-lg rounded-2xl p-6 border border-gray-200 shadow-lg">
             <div className="flex items-center space-x-3 mb-4">
-              <Clock className="w-8 h-8 text-gray-400" />
-              <h3 className="text-lg font-semibold text-white tracking-wide">IN PROGRESS</h3>
+              <Clock className="w-8 h-8 text-purple-500" />
+              <h3 className="text-lg font-semibold text-gray-900">In Progress</h3>
             </div>
-            <div className="text-3xl font-bold text-gray-300 mb-1">{pendingOrders}</div>
-            <div className="text-xs text-gray-400 tracking-wide">ACTIVE PROJECTS</div>
+            <div className="text-3xl font-bold text-purple-500">{pendingOrders}</div>
+            <div className="text-xs text-gray-500 mt-1">Active orders</div>
           </div>
         </div>
 
         {/* Order Status Legend */}
-        <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-8">
-          <h2 className="text-lg font-bold text-white mb-4 tracking-wide">ORDER STATUS PRIORITY</h2>
+        <div className="bg-white/90 backdrop-blur-lg rounded-2xl p-6 border border-gray-200 shadow-lg mb-8">
+          <h2 className="text-lg font-bold text-gray-900 mb-4">Order Status Priority (Sorted)</h2>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {Object.entries(orderStatuses)
               .sort(([,a], [,b]) => a.priority - b.priority)
               .map(([status, info]) => (
-                <div key={status} className={`flex items-center space-x-2 p-3 rounded-lg border ${info.bgColor}`}>
+                <div key={status} className={`flex items-center space-x-2 p-3 rounded-lg ${info.bgColor}`}>
                   <info.icon className="w-4 h-4" />
                   <div>
                     <div className="text-sm font-medium">{info.label}</div>
@@ -515,24 +517,24 @@ function App() {
                 </div>
               ))}
           </div>
-          <div className="mt-3 text-xs text-gray-400 tracking-wide">
-            Orders automatically prioritized by status. Urgent items appear first.
+          <div className="mt-3 text-xs text-gray-500">
+            Orders are automatically sorted by priority. Pending orders appear first, delivered orders appear last.
           </div>
         </div>
 
         {/* Recent Notifications */}
         {notifications.length > 0 && (
-          <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 shadow-xl mb-8">
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center space-x-2">
-              <Zap className="w-6 h-6 text-teal-400" />
-              <span className="tracking-wide">LIVE UPDATES</span>
+          <div className="bg-white/90 backdrop-blur-lg rounded-2xl p-6 border border-gray-200 shadow-lg mb-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center space-x-2">
+              <Zap className="w-6 h-6 text-teal-600" />
+              <span>Live Updates</span>
             </h2>
             <div className="space-y-3">
               {notifications.map((notif) => (
-                <div key={notif.id} className="flex items-center space-x-4 p-3 bg-gray-800/30 rounded-lg border border-gray-700/30">
-                  <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse shadow-lg"></div>
-                  <span className="text-white flex-1">{notif.message}</span>
-                  <span className="text-gray-400 text-sm">{notif.time}</span>
+                <div key={notif.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <div className="w-2 h-2 bg-teal-500 rounded-full animate-pulse"></div>
+                  <span className="text-gray-800 flex-1">{notif.message}</span>
+                  <span className="text-gray-500 text-sm">{notif.time}</span>
                 </div>
               ))}
             </div>
@@ -542,58 +544,58 @@ function App() {
         {/* Loading state */}
         {loading && (
           <div className="text-center py-8">
-            <RefreshCw className="w-8 h-8 text-teal-400 animate-spin mx-auto mb-4" />
-            <p className="text-white tracking-wide">Synchronizing with Expo CCI Database...</p>
+            <RefreshCw className="w-8 h-8 text-teal-600 animate-spin mx-auto mb-4" />
+            <p className="text-gray-700">Synchronizing with Expo CCI Database...</p>
           </div>
         )}
 
-        {/* Orders Grid */}
+        {/* Orders Grid - Keeping original status colors */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {orders.map((order) => {
             const statusInfo = orderStatuses[order.status] || orderStatuses['in-process'];
             const StatusIcon = statusInfo.icon;
             
             return (
-              <div key={order.id} className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 shadow-xl group">
+              <div key={order.id} className="bg-white/90 backdrop-blur-lg rounded-2xl p-6 border border-gray-200 hover:border-gray-300 transition-all duration-300 shadow-lg">
                 {/* Order Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <StatusIcon className="w-6 h-6 text-white" />
-                    <span className="text-white font-bold tracking-wider">{order.id}</span>
+                    <StatusIcon className="w-6 h-6 text-gray-700" />
+                    <span className="text-gray-900 font-bold">{order.id}</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-xs bg-gray-700/50 text-gray-400 px-2 py-1 rounded-full border border-gray-600/30">
-                      P{statusInfo.priority}
+                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                      Priority {statusInfo.priority}
                     </span>
                     {order.expo_processed && (
-                      <span className="text-xs bg-teal-500/20 text-teal-400 px-2 py-1 rounded-full border border-teal-500/30">
-                        ECC
+                      <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-full">
+                        Expo CCI
                       </span>
                     )}
                   </div>
                 </div>
 
                 {/* Order Info */}
-                <h3 className="text-xl font-bold text-white mb-2 tracking-wide">{order.item}</h3>
-                <p className="text-gray-300 text-sm mb-4">{order.description}</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{order.item}</h3>
+                <p className="text-gray-600 text-sm mb-4">{order.description}</p>
 
                 {/* Order Details */}
                 <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
                   <div>
-                    <p className="text-gray-400 uppercase tracking-wider text-xs">Order Date</p>
-                    <p className="text-white font-medium">{order.order_date}</p>
+                    <p className="text-gray-500">Order Date</p>
+                    <p className="text-gray-900 font-medium">{order.order_date}</p>
                   </div>
                   <div>
-                    <p className="text-gray-400 uppercase tracking-wider text-xs">Quantity</p>
-                    <p className="text-white font-medium">{order.quantity}</p>
+                    <p className="text-gray-500">Quantity</p>
+                    <p className="text-gray-900 font-medium">{order.quantity}</p>
                   </div>
                   <div>
-                    <p className="text-gray-400 uppercase tracking-wider text-xs">Color</p>
-                    <p className="text-white font-medium">{order.color}</p>
+                    <p className="text-gray-500">Color</p>
+                    <p className="text-gray-900 font-medium">{order.color}</p>
                   </div>
                   <div>
-                    <p className="text-gray-400 uppercase tracking-wider text-xs">Section</p>
-                    <p className="text-white font-medium">{order.section}</p>
+                    <p className="text-gray-500">Section</p>
+                    <p className="text-gray-900 font-medium">{order.section}</p>
                   </div>
                 </div>
 
@@ -602,31 +604,24 @@ function App() {
                   {renderProgressBar(order.status)}
                 </div>
 
-                {/* Status Badge */}
-                <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full border ${statusInfo.bgColor}`}>
+                {/* Status Badge - Original colors preserved */}
+                <div className={`inline-flex items-center space-x-2 px-3 py-2 rounded-full ${statusInfo.bgColor}`}>
                   <StatusIcon className="w-4 h-4" />
-                  <span className="text-sm font-medium tracking-wide">{statusInfo.label}</span>
+                  <span className="text-sm font-medium">{statusInfo.label}</span>
                 </div>
 
                 {/* Comments */}
                 {order.comments && (
-                  <div className="mt-4 p-3 bg-gray-800/30 rounded-lg border border-gray-700/30">
-                    <p className="text-gray-400 text-xs mb-1 uppercase tracking-wider">Project Notes</p>
-                    <p className="text-white text-sm">{order.comments}</p>
+                  <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                    <p className="text-gray-500 text-xs mb-1">Comments</p>
+                    <p className="text-gray-800 text-sm">{order.comments}</p>
                   </div>
                 )}
 
-                {/* Expo CCI Branding Footer */}
-                <div className="mt-4 pt-3 border-t border-gray-700/30 flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="flex space-x-0.5">
-                      <div className="w-2 h-2 bg-teal-500 rotate-45"></div>
-                      <div className="w-2 h-2 bg-gray-600 rotate-45"></div>
-                      <div className="w-2 h-2 bg-teal-400 rotate-45"></div>
-                    </div>
-                    <span className="text-xs text-gray-400 tracking-wider">EXPO CCI</span>
-                  </div>
-                  <span className="text-xs text-gray-500">Professional Exhibition Services</span>
+                {/* Expo CCI Footer */}
+                <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
+                  <ExpoLogo size="small" showText={false} />
+                  <span className="text-xs text-gray-400">Managed by Expo Convention Contractors</span>
                 </div>
               </div>
             );
@@ -636,35 +631,27 @@ function App() {
         {/* No orders message */}
         {!loading && orders.length === 0 && (
           <div className="text-center py-12">
-            <div className="flex items-center justify-center mb-4">
-              <div className="flex space-x-1">
-                <div className="w-4 h-4 bg-teal-500/50 rotate-45"></div>
-                <div className="w-4 h-4 bg-gray-600/50 rotate-45"></div>
-                <div className="w-4 h-4 bg-teal-400/50 rotate-45"></div>
-              </div>
-            </div>
-            <h3 className="text-xl font-semibold text-white mb-2 tracking-wide">NO ACTIVE ORDERS</h3>
-            <p className="text-gray-400">No orders found for {exhibitor.name} in our system.</p>
+            <ExpoLogo size="large" showText={false} />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2 mt-4">No Orders Found</h3>
+            <p className="text-gray-600">No orders found for {exhibitor.name} in our system.</p>
             <p className="text-gray-500 text-sm mt-2">Managed by Expo Convention Contractors</p>
           </div>
         )}
 
         {/* Footer */}
-        <div className="mt-12 text-center">
-          <div className="flex items-center justify-center space-x-3 mb-2">
-            <div className="flex space-x-1">
-              <div className="w-3 h-3 bg-teal-500 rotate-45"></div>
-              <div className="w-3 h-3 bg-gray-600 rotate-45"></div>
-              <div className="w-3 h-3 bg-teal-400 rotate-45"></div>
-            </div>
-            <span className="text-gray-400 tracking-widest text-sm">EXPO CONVENTION CONTRACTORS</span>
+        <div className="mt-12 text-center bg-white/90 backdrop-blur-lg rounded-2xl p-6 border border-gray-200 shadow-lg">
+          <div className="flex items-center justify-center mb-3">
+            <ExpoLogo size="large" />
           </div>
-          <p className="text-gray-500 text-xs tracking-wide">
-            "LARGE ENOUGH TO BE EXCEPTIONAL, YET SMALL ENOUGH TO BE PERSONABLE"
+          <p className="text-gray-600 text-sm font-medium mb-2">
+            "Large Enough To Be Exceptional, Yet Small Enough To Be Personable"
           </p>
-          <p className="text-gray-600 text-xs mt-1">
-            Professional Exhibition Management • Miami, Florida
+          <p className="text-gray-500 text-xs">
+            Expo Convention Contractors Inc. • Professional Exhibition Management • Miami, Florida
           </p>
+          <div className="mt-4 text-xs text-gray-400">
+            ExpoFlow v3.0 • Real-time Order Tracking System
+          </div>
         </div>
       </div>
     </div>
