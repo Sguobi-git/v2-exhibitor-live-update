@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, send_from_directory, send_file
 from flask_cors import CORS
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import logging
 import os
@@ -16,6 +16,22 @@ CORS(app)  # Enable CORS for React app
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# CACHING SYSTEM - Prevent rate limits
+CACHE = {}
+CACHE_DURATION = 300  # 5 minutes cache
+
+def get_from_cache(key):
+    if key in CACHE:
+        data, timestamp = CACHE[key]
+        if datetime.now() - timestamp < timedelta(seconds=CACHE_DURATION):
+            logger.info(f"Using cached data for {key}")
+            return data
+    return None
+
+def set_cache(key, data):
+    CACHE[key] = (data, datetime.now())
+    logger.info(f"Cached data for {key}")
 
 # Initialize Google Sheets Manager with environment credentials
 def get_credentials():
@@ -107,29 +123,51 @@ def get_mock_orders():
     ]
 
 def load_orders_from_sheets():
-    """Load orders from Google Sheets"""
+    """Load orders from Google Sheets with caching"""
+    cache_key = "all_orders"
+    
+    # Try cache first
+    cached_data = get_from_cache(cache_key)
+    if cached_data:
+        return cached_data
+    
     try:
         if not gs_manager:
             logger.warning("No Google Sheets manager available, using mock data")
-            return get_mock_orders()
+            mock_data = get_mock_orders()
+            set_cache(cache_key, mock_data)
+            return mock_data
             
         # Get all orders from Google Sheets
         all_orders = []
-        df = gs_manager.get_data(SHEET_ID, "Orders")
+        data = gs_manager.get_data(SHEET_ID, "Orders")
         
-        if not df.empty:
-            all_orders = gs_manager.parse_orders_data(df)
-            logger.info(f"Loaded {len(all_orders)} orders from Google Sheets")
-        else:
-            logger.warning("No data found in Google Sheets, using mock data")
-            all_orders = get_mock_orders()
+        # FIX: Handle both list and dataframe returns
+        if data and len(data) > 0:
+            # If it's a list (not empty), parse it
+            if isinstance(data, list):
+                all_orders = gs_manager.parse_orders_data(data)
+            else:
+                # If it has .empty attribute (pandas DataFrame)
+                if hasattr(data, 'empty') and not data.empty:
+                    all_orders = gs_manager.parse_orders_data(data)
+            
+            if all_orders:
+                logger.info(f"Loaded {len(all_orders)} orders from Google Sheets")
+                set_cache(cache_key, all_orders)
+                return all_orders
         
-        return all_orders
+        logger.warning("No data found in Google Sheets, using mock data")
+        mock_data = get_mock_orders()
+        set_cache(cache_key, mock_data)
+        return mock_data
         
     except Exception as e:
         logger.error(f"Error loading orders from sheets: {e}")
         logger.info("Falling back to mock data")
-        return get_mock_orders()
+        mock_data = get_mock_orders()
+        set_cache(cache_key, mock_data)
+        return mock_data
 
 def map_status(sheet_status):
     """Map Google Sheets status to React app status"""
@@ -172,7 +210,8 @@ def health_check():
     return jsonify({
         'status': 'healthy', 
         'timestamp': datetime.now().isoformat(),
-        'google_sheets_connected': gs_manager is not None
+        'google_sheets_connected': gs_manager is not None,
+        'cache_size': len(CACHE)
     })
 
 @app.route('/api/abacus-status', methods=['GET'])
@@ -183,41 +222,45 @@ def abacus_status():
         'status': 'connected',
         'database': 'Google Sheets Integration',
         'last_sync': datetime.now().isoformat(),
-        'version': '2.1.0'
+        'version': '2.1.0',
+        'cache_enabled': True
     })
 
 @app.route('/api/exhibitors', methods=['GET'])
 def get_exhibitors():
-    """Get list of all exhibitors"""
+    """Get list of all exhibitors with caching"""
+    cache_key = "exhibitors"
+    
+    # Try cache first
+    cached_data = get_from_cache(cache_key)
+    if cached_data:
+        return jsonify(cached_data)
+    
     try:
-        if gs_manager:
-            exhibitors = gs_manager.get_all_exhibitors(SHEET_ID)
-        else:
-            exhibitors = []
-            
-        if not exhibitors:
-            # Fallback to extracting from mock data
-            orders = load_orders_from_sheets()
-            exhibitors = {}
-            
-            for order in orders:
-                exhibitor_name = order['exhibitor_name']
-                booth_number = order['booth_number']
-                
-                if exhibitor_name not in exhibitors:
-                    exhibitors[exhibitor_name] = {
-                        'name': exhibitor_name,
-                        'booth': booth_number,
-                        'total_orders': 0,
-                        'delivered_orders': 0
-                    }
-                
-                exhibitors[exhibitor_name]['total_orders'] += 1
-                if order['status'] == 'delivered':
-                    exhibitors[exhibitor_name]['delivered_orders'] += 1
-            
-            exhibitors = list(exhibitors.values())
+        exhibitors = []
         
+        # Get exhibitors from orders data
+        orders = load_orders_from_sheets()
+        exhibitors_dict = {}
+        
+        for order in orders:
+            exhibitor_name = order['exhibitor_name']
+            booth_number = order['booth_number']
+            
+            if exhibitor_name not in exhibitors_dict:
+                exhibitors_dict[exhibitor_name] = {
+                    'name': exhibitor_name,
+                    'booth': booth_number,
+                    'total_orders': 0,
+                    'delivered_orders': 0
+                }
+            
+            exhibitors_dict[exhibitor_name]['total_orders'] += 1
+            if order['status'] == 'delivered':
+                exhibitors_dict[exhibitor_name]['delivered_orders'] += 1
+        
+        exhibitors = list(exhibitors_dict.values())
+        set_cache(cache_key, exhibitors)
         return jsonify(exhibitors)
         
     except Exception as e:
@@ -226,37 +269,40 @@ def get_exhibitors():
 
 @app.route('/api/orders', methods=['GET'])
 def get_all_orders():
-    """Get all orders"""
+    """Get all orders with caching"""
     orders = load_orders_from_sheets()
     return jsonify(orders)
 
 @app.route('/api/orders/exhibitor/<exhibitor_name>', methods=['GET'])
 def get_orders_by_exhibitor(exhibitor_name):
-    """Get orders for a specific exhibitor"""
+    """Get orders for a specific exhibitor with caching"""
+    cache_key = f"exhibitor_{exhibitor_name}"
+    
+    # Try cache first
+    cached_data = get_from_cache(cache_key)
+    if cached_data:
+        return jsonify(cached_data)
+    
     try:
-        exhibitor_orders = []
-        
-        if gs_manager:
-            # Try to get orders directly from sheets manager
-            exhibitor_orders = gs_manager.get_orders_for_exhibitor(SHEET_ID, exhibitor_name)
-        
-        if not exhibitor_orders:
-            # Fallback to loading all orders and filtering
-            all_orders = load_orders_from_sheets()
-            exhibitor_orders = [
-                order for order in all_orders 
-                if order['exhibitor_name'].lower() == exhibitor_name.lower()
-            ]
+        # Get all orders and filter
+        all_orders = load_orders_from_sheets()
+        exhibitor_orders = [
+            order for order in all_orders 
+            if order['exhibitor_name'].lower() == exhibitor_name.lower()
+        ]
         
         delivered_count = len([o for o in exhibitor_orders if o['status'] == 'delivered'])
         
-        return jsonify({
+        result = {
             'exhibitor': exhibitor_name,
             'orders': exhibitor_orders,
             'total_orders': len(exhibitor_orders),
             'delivered_orders': delivered_count,
             'last_updated': datetime.now().isoformat()
-        })
+        }
+        
+        set_cache(cache_key, result)
+        return jsonify(result)
         
     except Exception as e:
         logger.error(f"Error getting orders for exhibitor {exhibitor_name}: {e}")
@@ -298,6 +344,14 @@ def get_stats():
     }
     
     return jsonify(stats)
+
+@app.route('/api/clear-cache', methods=['POST'])
+def clear_cache():
+    """Clear all cached data - useful for testing"""
+    global CACHE
+    CACHE = {}
+    logger.info("Cache cleared")
+    return jsonify({'message': 'Cache cleared successfully'})
 
 if __name__ == '__main__':
     import os
