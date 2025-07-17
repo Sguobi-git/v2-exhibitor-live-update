@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory, send_file
 from flask_cors import CORS
 from datetime import datetime
 import time
@@ -9,7 +9,8 @@ import json
 # Import the Google Sheets manager
 from sheets_integration import GoogleSheetsManager
 
-app = Flask(__name__)
+# Initialize Flask app with static folder for React build
+app = Flask(__name__, static_folder='frontend/build', static_url_path='')
 CORS(app)  # Enable CORS for React app
 
 # Configure logging
@@ -142,7 +143,29 @@ def map_status(sheet_status):
     }
     return status_mapping.get(sheet_status, 'in-process')
 
-# API Routes
+# REACT APP SERVING ROUTES
+@app.route('/')
+def serve_react_app():
+    """Serve the React app"""
+    try:
+        return send_file('frontend/build/index.html')
+    except FileNotFoundError:
+        return "Frontend not built. Please run 'npm run build' in frontend directory.", 404
+
+@app.route('/<path:path>')
+def serve_static_files(path):
+    """Serve static files or React app for client-side routing"""
+    try:
+        # Try to serve static file first
+        return send_from_directory('frontend/build', path)
+    except FileNotFoundError:
+        # If file not found, serve React app (for client-side routing)
+        try:
+            return send_file('frontend/build/index.html')
+        except FileNotFoundError:
+            return "Frontend not built. Please run 'npm run build' in frontend directory.", 404
+
+# API ROUTES
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
@@ -275,11 +298,6 @@ def get_stats():
     }
     
     return jsonify(stats)
-
-# if __name__ == '__main__':
-#     import os
-#     port = int(os.environ.get('PORT', 5000))
-#     app.run(host='0.0.0.0', port=port, debug=False)
 
 if __name__ == '__main__':
     import os
