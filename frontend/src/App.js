@@ -289,7 +289,7 @@ function App() {
     return (
       <div className="flex items-center">
         <img 
-          src="https://expocci.com/wp-content/uploads/2022/01/expo_blanco.png" 
+          src="https://i.ibb.co/5gdgZVxj/output-onlinepngtools.png" 
           alt="Expo Convention Contractors"
           className={`${logoHeight} w-auto object-contain ${filter}`}
           style={{ filter: color === "white" ? "brightness(0) invert(1)" : "none" }}
