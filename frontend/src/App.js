@@ -600,7 +600,7 @@ function App() {
 
         {/* Order Status Legend */}
         <div className="bg-white/90 backdrop-blur-lg rounded-2xl p-6 border border-gray-200 shadow-lg mb-8">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Order Status Priority (Sorted)</h2>
+          <h2 className="text-lg font-bold text-gray-900 mb-4">Delivery Steps</h2>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {Object.entries(orderStatuses)
               .sort(([,a], [,b]) => a.priority - b.priority)
