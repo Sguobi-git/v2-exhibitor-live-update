@@ -432,7 +432,6 @@ function App() {
                               <h3 className="font-semibold text-gray-900 truncate">{exhibitor.name}</h3>
                               <div className="flex items-center space-x-3 mt-1">
                                 <p className="text-xs text-teal-600 font-medium">Booth {exhibitor.booth}</p>
-                                <p className="text-xs text-gray-500">Section {iconData.section}</p>
                               </div>
                               {/* Show order stats if available */}
                               {exhibitor.total_orders !== undefined && (
