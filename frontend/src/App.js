@@ -536,7 +536,6 @@ function App() {
                     <span>Expo Convention Contractors</span>
                   </span>
                   <span className="text-xs md:text-sm text-gray-500">Live Order Tracking</span>
-                  )}
                 </div>
               </div>
             </div>
