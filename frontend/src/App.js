@@ -629,7 +629,6 @@ function App() {
                 <div key={notif.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
                   <div className="w-2 h-2 bg-teal-500 rounded-full animate-pulse"></div>
                   <span className="text-gray-800 flex-1">{notif.message}</span>
-                  <span className="text-xs text-gray-500">{notif.time}</span>
                 </div>
               ))}
             </div>
