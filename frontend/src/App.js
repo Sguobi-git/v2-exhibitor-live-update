@@ -528,7 +528,7 @@ function App() {
               <div className="min-w-0 flex-1">
                 <h1 className="text-xl md:text-3xl font-bold text-gray-900 truncate">{exhibitor.name}</h1>
                 <p className="text-sm md:text-base text-gray-600">
-                  <span className="text-teal-600">Booth {exhibitor.booth}</span> • Section {iconData.section}
+                  <span className="text-teal-600">Booth {exhibitor.booth}</span>
                 </p>
                 <div className="flex flex-wrap items-center gap-2 md:gap-4 mt-1 md:mt-2">
                   <span className="text-xs md:text-sm text-teal-600 flex items-center space-x-1">
