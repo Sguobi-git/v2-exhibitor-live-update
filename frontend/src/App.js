@@ -513,29 +513,30 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white/90 backdrop-blur-lg rounded-3xl p-6 border border-gray-200 shadow-xl mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-4">
+        {/* Header - Mobile Responsive */}
+        <div className="bg-white/90 backdrop-blur-lg rounded-3xl p-4 md:p-6 border border-gray-200 shadow-xl mb-8">
+          <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+            {/* Left side - Company info */}
+            <div className="flex items-center space-x-3 md:space-x-6">
+              <div className="flex items-center space-x-3 md:space-x-4">
                 <ExpoLogo size="small" />
-                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${iconData.colorScheme.bg} flex items-center justify-center shadow-lg border border-gray-300`}>
-                  <span className={`text-lg font-bold ${iconData.colorScheme.text}`}>
+                <div className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br ${iconData.colorScheme.bg} flex items-center justify-center shadow-lg border border-gray-300`}>
+                  <span className={`text-sm md:text-lg font-bold ${iconData.colorScheme.text}`}>
                     {iconData.initials}
                   </span>
                 </div>
               </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">{exhibitor.name}</h1>
-                <p className="text-gray-600">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl md:text-3xl font-bold text-gray-900 truncate">{exhibitor.name}</h1>
+                <p className="text-sm md:text-base text-gray-600">
                   <span className="text-teal-600">Booth {exhibitor.booth}</span> • Section {iconData.section}
                 </p>
-                <div className="flex items-center space-x-4 mt-2">
-                  <span className="text-sm text-teal-600 flex items-center space-x-1">
-                    <Award className="w-4 h-4" />
+                <div className="flex flex-wrap items-center gap-2 md:gap-4 mt-1 md:mt-2">
+                  <span className="text-xs md:text-sm text-teal-600 flex items-center space-x-1">
+                    <Award className="w-3 h-3 md:w-4 md:h-4" />
                     <span>Expo Convention Contractors</span>
                   </span>
-                  <span className="text-sm text-gray-500">Live Order Tracking</span>
+                  <span className="text-xs md:text-sm text-gray-500">Live Order Tracking</span>
                   {lastUpdated && (
                     <span className="text-xs text-gray-400">
                       Updated: {lastUpdated.toLocaleTimeString()}
@@ -544,23 +545,25 @@ function App() {
                 </div>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            
+            {/* Right side - Action buttons */}
+            <div className="flex items-center justify-end space-x-2 md:space-x-4 flex-shrink-0">
               <button 
                 onClick={handleRefresh}
                 disabled={loading}
-                className="p-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl transition-all duration-300 border border-gray-200 disabled:opacity-50"
+                className="p-2 md:p-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl md:rounded-2xl transition-all duration-300 border border-gray-200 disabled:opacity-50"
               >
-                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-4 h-4 md:w-5 md:h-5 ${loading ? 'animate-spin' : ''}`} />
               </button>
               <div className="relative">
-                <Bell className="w-6 h-6 text-gray-600 cursor-pointer hover:text-teal-600 transition-colors" />
+                <Bell className="w-5 h-5 md:w-6 md:h-6 text-gray-600 cursor-pointer hover:text-teal-600 transition-colors" />
                 {notifications.length > 0 && (
                   <div className="absolute -top-1 -right-1 w-3 h-3 bg-teal-500 rounded-full animate-pulse"></div>
                 )}
               </div>
               <button 
                 onClick={() => setIsLoggedIn(false)}
-                className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl transition-all duration-300 border border-gray-200"
+                className="px-3 py-2 md:px-6 md:py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl md:rounded-2xl transition-all duration-300 border border-gray-200 text-sm md:text-base"
               >
                 Sign Out
               </button>
@@ -629,6 +632,7 @@ function App() {
                 <div key={notif.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
                   <div className="w-2 h-2 bg-teal-500 rounded-full animate-pulse"></div>
                   <span className="text-gray-800 flex-1">{notif.message}</span>
+                  <span className="text-xs text-gray-500">{notif.time}</span>
                 </div>
               ))}
             </div>
