@@ -406,7 +406,7 @@ function App() {
                       <div
                         key={`${exhibitor.name}-${index}`}
                         className={`relative cursor-pointer transition-all duration-300 ${
-                          selectedExhibitor === exhibitor.name ? 'transform scale-105' : 'hover:scale-102'
+                          selectedExhibitor === exhibitor.name ? '' : 'hover:scale-102'
                         }`}
                         onClick={() => setSelectedExhibitor(exhibitor.name)}
                       >
