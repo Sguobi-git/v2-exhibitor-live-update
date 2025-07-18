@@ -130,11 +130,17 @@ function App() {
   const fetchAbacusStatus = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE}/abacus-status`);
-      const data = await response.json();
-      setAbacusStatus(data);
-      console.log('🤖 System Status:', data);
+      if (response.ok) {
+        const data = await response.json();
+        setAbacusStatus(data);
+        console.log('🤖 System Status:', data);
+      } else {
+        console.warn('System status endpoint not available');
+        setAbacusStatus({ status: 'offline' });
+      }
     } catch (error) {
       console.error('Error fetching system status:', error);
+      setAbacusStatus({ status: 'offline' });
     }
   }, [API_BASE]);
 
@@ -146,10 +152,18 @@ function App() {
       
       const url = `${API_BASE}/exhibitors${forceRefresh ? '?force_refresh=true' : ''}`;
       const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch exhibitors');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
       
       const data = await response.json();
       console.log('📊 Exhibitors Response:', data);
+      
+      // Ensure data is an array
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid data format: expected array');
+      }
       
       // Sort exhibitors alphabetically for consistent display
       const sortedExhibitors = data.sort((a, b) => a.name.localeCompare(b.name));
@@ -170,7 +184,7 @@ function App() {
         { name: 'Future Tech Corp', booth: 'F-201', total_orders: 3, delivered_orders: 2 }
       ];
       setExhibitors(fallbackExhibitors);
-      console.log('Using fallback exhibitors');
+      console.log('⚠️ Using fallback exhibitors due to API error');
     } finally {
       setLoadingExhibitors(false);
     }
@@ -244,14 +258,20 @@ function App() {
       
       const url = `${API_BASE}/orders/exhibitor/${encodeURIComponent(exhibitorName)}${forceRefresh ? '?force_refresh=true' : ''}`;
       const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch orders');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
       
       const data = await response.json();
       console.log('📊 System Response:', data);
       
-      const sortedOrders = sortOrdersByStatus(data.orders || []);
+      // Handle both array and object responses
+      const ordersArray = Array.isArray(data) ? data : (data.orders || []);
+      const sortedOrders = sortOrdersByStatus(ordersArray);
+      
       setOrders(sortedOrders);
-      setLastUpdated(new Date(data.last_updated));
+      setLastUpdated(new Date(data.last_updated || Date.now()));
       generateNotifications(sortedOrders);
       
       if (forceRefresh) {
@@ -261,15 +281,17 @@ function App() {
     } catch (error) {
       console.error('Error fetching orders:', error);
       
+      // Create fallback orders
       const fallbackOrders = createFallbackOrders(exhibitorName);
       const sortedFallbackOrders = sortOrdersByStatus(fallbackOrders);
       setOrders(sortedFallbackOrders);
       setLastUpdated(new Date());
       generateNotifications(sortedFallbackOrders);
+      console.log('⚠️ Using fallback orders due to API error');
     } finally {
       setLoading(false);
     }
-  }, [API_BASE, generateNotifications, createFallbackOrders, loading]);
+  }, [API_BASE, generateNotifications, createFallbackOrders, loading, sortOrdersByStatus]);
 
   // Load exhibitors on component mount
   useEffect(() => {
