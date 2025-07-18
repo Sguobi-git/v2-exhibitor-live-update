@@ -9,53 +9,60 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [abacusStatus, setAbacusStatus] = useState(null);
-  const [exhibitors, setExhibitors] = useState([]); // Dynamic exhibitors from Google Sheets
-  const [loadingExhibitors, setLoadingExhibitors] = useState(true);
 
-  // Professional icon generator based on booth number
-  const generateExhibitorIcon = (exhibitorName, boothNumber) => {
-    // Extract booth section (letter) and number
-    const boothMatch = boothNumber.match(/([A-Z]+)[-]?(\d+)/);
-    const section = boothMatch ? boothMatch[1] : 'A';
-    const number = boothMatch ? parseInt(boothMatch[2]) : 100;
-    
-    // Generate professional colors based on section - using only professional colors
-    const sectionColors = {
-      'A': { bg: 'from-slate-600 to-slate-700', text: 'text-slate-100', accent: 'border-slate-300' },
-      'B': { bg: 'from-gray-600 to-gray-700', text: 'text-gray-100', accent: 'border-gray-300' },
-      'C': { bg: 'from-zinc-600 to-zinc-700', text: 'text-zinc-100', accent: 'border-zinc-300' },
-      'D': { bg: 'from-stone-600 to-stone-700', text: 'text-stone-100', accent: 'border-stone-300' },
-      'E': { bg: 'from-neutral-600 to-neutral-700', text: 'text-neutral-100', accent: 'border-neutral-300' },
-      'F': { bg: 'from-slate-700 to-slate-800', text: 'text-slate-100', accent: 'border-slate-400' },
-      'G': { bg: 'from-gray-700 to-gray-800', text: 'text-gray-100', accent: 'border-gray-400' },
-      'H': { bg: 'from-zinc-700 to-zinc-800', text: 'text-zinc-100', accent: 'border-zinc-400' },
-      'I': { bg: 'from-slate-500 to-slate-600', text: 'text-slate-100', accent: 'border-slate-300' },
-      'J': { bg: 'from-gray-500 to-gray-600', text: 'text-gray-100', accent: 'border-gray-300' },
-    };
-    
-    const colorScheme = sectionColors[section] || sectionColors['A'];
-    
-    // Generate initials from company name (first letter of each word, max 2)
-    const words = exhibitorName.split(' ').filter(word => word.length > 2); // Filter out small words like "Inc", "LLC"
-    let initials = '';
-    
-    if (words.length >= 2) {
-      initials = words[0][0] + words[1][0];
-    } else if (words.length === 1) {
-      initials = words[0].substring(0, 2);
-    } else {
-      initials = exhibitorName.substring(0, 2);
+  // Real exhibitors from your Google Sheet
+  const exhibitors = [
+    {
+      id: 'nevetal',
+      name: 'nevetal',
+      booth: '3005',
+      avatar: '🏨',
+      color: 'from-blue-600 to-cyan-600',
+      company: 'Event Services'
+    },
+    {
+      id: 'saint-lucia',
+      name: 'Saint Lucia Tourism Authority',
+      booth: 'B-156',
+      avatar: '🏝️',
+      color: 'from-green-600 to-emerald-600',
+      company: 'Tourism & Travel'
+    },
+    {
+      id: 'costa-rica',
+      name: 'Costa Rica',
+      booth: 'C-089',
+      avatar: '🌿',
+      color: 'from-emerald-600 to-teal-600',
+      company: 'Tourism Board'
+    },
+    {
+      id: 'dominica',
+      name: 'Discover Dominica Authority',
+      booth: 'D-312',
+      avatar: '🏞️',
+      color: 'from-purple-600 to-pink-600',
+      company: 'Tourism Authority'
+    },
+    {
+      id: 'italy-tour',
+      name: 'Great Italy Tour & Events',
+      booth: 'E-445',
+      avatar: '🇮🇹',
+      color: 'from-red-600 to-orange-600',
+      company: 'Tour Operator'
+    },
+    {
+      id: 'quench-usa',
+      name: 'Quench USA',
+      booth: 'F-201',
+      avatar: '💧',
+      color: 'from-cyan-600 to-blue-600',
+      company: 'Beverage Solutions'
     }
-    
-    return {
-      initials: initials.toUpperCase(),
-      colorScheme,
-      section,
-      number: boothNumber
-    };
-  };
+  ];
 
-  // Keep original status colors exactly as they were
+  // Keeping original status colors exactly as they were
   const orderStatuses = {
     'delivered': { 
       label: 'Delivered', 
@@ -109,84 +116,14 @@ function App() {
 
   const API_BASE = 'https://exhibitor-backend.onrender.com/api';
 
-  // Actual Expo CCI Logo Component
-  const ExpoLogo = ({ size = "large", color = "black" }) => {
-    const isLarge = size === "large";
-    const logoHeight = isLarge ? "h-12" : "h-8";
-    const filter = color === "white" ? "brightness(0) invert(1)" : "";
-    
-    return (
-      <div className="flex items-center">
-        <img 
-          src="https://i.ibb.co/5gdgZVxj/output-onlinepngtools.png" 
-          alt="Expo Convention Contractors"
-          className={`${logoHeight} w-auto object-contain ${filter}`}
-          style={{ filter: color === "white" ? "brightness(0) invert(1)" : "none" }}
-        />
-      </div>
-    );
-  };
-
   const fetchAbacusStatus = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE}/abacus-status`);
-      if (response.ok) {
-        const data = await response.json();
-        setAbacusStatus(data);
-        console.log('🤖 System Status:', data);
-      } else {
-        console.warn('System status endpoint not available');
-        setAbacusStatus({ status: 'offline' });
-      }
+      const data = await response.json();
+      setAbacusStatus(data);
+      console.log('🤖 System Status:', data);
     } catch (error) {
       console.error('Error fetching system status:', error);
-      setAbacusStatus({ status: 'offline' });
-    }
-  }, [API_BASE]);
-
-  // NEW: Fetch all exhibitors dynamically from Google Sheets
-  const fetchExhibitors = useCallback(async (forceRefresh = false) => {
-    setLoadingExhibitors(true);
-    try {
-      console.log('🏢 Fetching all exhibitors from Google Sheets...');
-      
-      const url = `${API_BASE}/exhibitors${forceRefresh ? '?force_refresh=true' : ''}`;
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      console.log('📊 Exhibitors Response:', data);
-      
-      // Ensure data is an array
-      if (!Array.isArray(data)) {
-        throw new Error('Invalid data format: expected array');
-      }
-      
-      // Sort exhibitors alphabetically for consistent display
-      const sortedExhibitors = data.sort((a, b) => a.name.localeCompare(b.name));
-      setExhibitors(sortedExhibitors);
-      
-      console.log(`✅ Loaded ${sortedExhibitors.length} exhibitors dynamically`);
-      
-    } catch (error) {
-      console.error('Error fetching exhibitors:', error);
-      
-      // Fallback: Create sample exhibitors if API fails
-      const fallbackExhibitors = [
-        { name: 'TechFlow Innovations', booth: 'A-245', total_orders: 3, delivered_orders: 1 },
-        { name: 'GreenWave Energy', booth: 'B-156', total_orders: 2, delivered_orders: 2 },
-        { name: 'SmartHealth Corp', booth: 'C-089', total_orders: 1, delivered_orders: 0 },
-        { name: 'Digital Solutions Inc', booth: 'D-312', total_orders: 4, delivered_orders: 3 },
-        { name: 'Innovation Labs', booth: 'E-445', total_orders: 2, delivered_orders: 1 },
-        { name: 'Future Tech Corp', booth: 'F-201', total_orders: 3, delivered_orders: 2 }
-      ];
-      setExhibitors(fallbackExhibitors);
-      console.log('⚠️ Using fallback exhibitors due to API error');
-    } finally {
-      setLoadingExhibitors(false);
     }
   }, [API_BASE]);
 
@@ -258,20 +195,14 @@ function App() {
       
       const url = `${API_BASE}/orders/exhibitor/${encodeURIComponent(exhibitorName)}${forceRefresh ? '?force_refresh=true' : ''}`;
       const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
+      if (!response.ok) throw new Error('Failed to fetch orders');
       
       const data = await response.json();
       console.log('📊 System Response:', data);
       
-      // Handle both array and object responses
-      const ordersArray = Array.isArray(data) ? data : (data.orders || []);
-      const sortedOrders = sortOrdersByStatus(ordersArray);
-      
+      const sortedOrders = sortOrdersByStatus(data.orders || []);
       setOrders(sortedOrders);
-      setLastUpdated(new Date(data.last_updated || Date.now()));
+      setLastUpdated(new Date(data.last_updated));
       generateNotifications(sortedOrders);
       
       if (forceRefresh) {
@@ -281,27 +212,19 @@ function App() {
     } catch (error) {
       console.error('Error fetching orders:', error);
       
-      // Create fallback orders
       const fallbackOrders = createFallbackOrders(exhibitorName);
       const sortedFallbackOrders = sortOrdersByStatus(fallbackOrders);
       setOrders(sortedFallbackOrders);
       setLastUpdated(new Date());
       generateNotifications(sortedFallbackOrders);
-      console.log('⚠️ Using fallback orders due to API error');
     } finally {
       setLoading(false);
     }
-  }, [API_BASE, generateNotifications, createFallbackOrders, loading, sortOrdersByStatus]);
-
-  // Load exhibitors on component mount
-  useEffect(() => {
-    fetchExhibitors();
-    fetchAbacusStatus();
-  }, [fetchExhibitors, fetchAbacusStatus]);
+  }, [API_BASE, generateNotifications, createFallbackOrders, loading]);
 
   useEffect(() => {
     if (isLoggedIn && selectedExhibitor) {
-      const exhibitor = exhibitors.find(e => e.name === selectedExhibitor);
+      const exhibitor = exhibitors.find(e => e.id === selectedExhibitor);
       if (exhibitor) {
         // Initial fetch (uses cache if available)
         fetchOrders(exhibitor.name, false);
@@ -313,7 +236,11 @@ function App() {
         return () => clearInterval(interval);
       }
     }
-  }, [isLoggedIn, selectedExhibitor, exhibitors, fetchOrders]);
+  }, [isLoggedIn, selectedExhibitor]);
+
+  useEffect(() => {
+    fetchAbacusStatus();
+  }, [fetchAbacusStatus]);
 
   const handleLogin = () => {
     if (selectedExhibitor) {
@@ -323,7 +250,7 @@ function App() {
 
   const handleRefresh = () => {
     if (selectedExhibitor && !loading) {
-      const exhibitor = exhibitors.find(e => e.name === selectedExhibitor);
+      const exhibitor = exhibitors.find(e => e.id === selectedExhibitor);
       if (exhibitor) {
         // Force refresh bypasses cache and gets fresh data from Google Sheets
         fetchOrders(exhibitor.name, true);
@@ -360,7 +287,25 @@ function App() {
     );
   };
 
-  // Login Screen with Dynamic Exhibitors
+  // Actual Expo CCI Logo Component
+  const ExpoLogo = ({ size = "large", color = "black" }) => {
+    const isLarge = size === "large";
+    const logoHeight = isLarge ? "h-12" : "h-8";
+    const filter = color === "white" ? "brightness(0) invert(1)" : "";
+    
+    return (
+      <div className="flex items-center">
+        <img 
+          src="https://i.ibb.co/5gdgZVxj/output-onlinepngtools.png" 
+          alt="Expo Convention Contractors"
+          className={`${logoHeight} w-auto object-contain ${filter}`}
+          style={{ filter: color === "white" ? "brightness(0) invert(1)" : "none" }}
+        />
+      </div>
+    );
+  };
+
+  // Login Screen
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center p-6">
@@ -394,83 +339,53 @@ function App() {
             </div>
 
             <div className="space-y-3 mb-8">
-              <div className="flex items-center justify-between mb-3">
-                <label className="block text-sm font-medium text-gray-700">
-                  Select Your Company
-                </label>
-                <span className="text-xs text-gray-500">
-                  {loadingExhibitors ? 'Loading...' : `${exhibitors.length} companies`}
-                </span>
-              </div>
-              
-              {loadingExhibitors ? (
-                <div className="text-center py-8">
-                  <RefreshCw className="w-6 h-6 text-gray-400 animate-spin mx-auto mb-2" />
-                  <p className="text-gray-500 text-sm">Loading exhibitors from Google Sheets...</p>
-                </div>
-              ) : (
-                <div className="max-h-80 overflow-y-auto space-y-3 pr-2">
-                  {exhibitors.map((exhibitor, index) => {
-                    const iconData = generateExhibitorIcon(exhibitor.name, exhibitor.booth);
-                    
-                    return (
-                      <div
-                        key={`${exhibitor.name}-${index}`}
-                        className={`relative cursor-pointer transition-all duration-300 ${
-                          selectedExhibitor === exhibitor.name ? 'transform scale-105' : 'hover:scale-102'
-                        }`}
-                        onClick={() => setSelectedExhibitor(exhibitor.name)}
-                      >
-                        <div className={`
-                          p-4 rounded-2xl border-2 transition-all duration-300
-                          ${selectedExhibitor === exhibitor.name
-                            ? 'border-teal-400 bg-teal-50 shadow-lg'
-                            : 'border-gray-200 bg-white hover:bg-gray-50'
-                          }
-                        `}>
-                          <div className="flex items-center space-x-4">
-                            {/* Dynamic Professional Icon */}
-                            <div className={`
-                              w-12 h-12 rounded-xl bg-gradient-to-br ${iconData.colorScheme.bg} 
-                              flex items-center justify-center shadow-lg border border-gray-300
-                            `}>
-                              <span className={`text-sm font-bold ${iconData.colorScheme.text}`}>
-                                {iconData.initials}
-                              </span>
-                            </div>
-                            
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-gray-900 truncate">{exhibitor.name}</h3>
-                              <div className="flex items-center space-x-3 mt-1">
-                                <p className="text-xs text-teal-600 font-medium">Booth {exhibitor.booth}</p>
-                                <p className="text-xs text-gray-500">Section {iconData.section}</p>
-                              </div>
-                              <div className="flex items-center space-x-3 mt-1">
-                                <span className="text-xs text-gray-600">{exhibitor.total_orders} orders</span>
-                                <span className="text-xs text-green-600">{exhibitor.delivered_orders} delivered</span>
-                              </div>
-                            </div>
-                            
-                            {selectedExhibitor === exhibitor.name && (
-                              <div className="text-teal-600">
-                                <ArrowRight className="w-5 h-5" />
-                              </div>
-                            )}
-                          </div>
-                        </div>
+              <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
+                Select Your Company
+              </label>
+              {exhibitors.map((exhibitor) => (
+                <div
+                  key={exhibitor.id}
+                  className={`relative cursor-pointer transition-all duration-300 ${
+                    selectedExhibitor === exhibitor.id ? 'transform scale-105' : 'hover:scale-102'
+                  }`}
+                  onClick={() => setSelectedExhibitor(exhibitor.id)}
+                >
+                  <div className={`
+                    p-4 rounded-2xl border-2 transition-all duration-300
+                    ${selectedExhibitor === exhibitor.id
+                      ? 'border-teal-400 bg-teal-50 shadow-lg'
+                      : 'border-gray-200 bg-white hover:bg-gray-50'
+                    }
+                  `}>
+                    <div className="flex items-center space-x-4">
+                      <div className={`
+                        w-12 h-12 rounded-xl bg-gradient-to-r ${exhibitor.color} 
+                        flex items-center justify-center text-2xl shadow-lg
+                      `}>
+                        {exhibitor.avatar}
                       </div>
-                    );
-                  })}
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900">{exhibitor.name}</h3>
+                        <p className="text-sm text-gray-600">{exhibitor.company}</p>
+                        <p className="text-xs text-teal-600 font-medium">Booth {exhibitor.booth}</p>
+                      </div>
+                      {selectedExhibitor === exhibitor.id && (
+                        <div className="text-teal-600">
+                          <ArrowRight className="w-5 h-5" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
 
             <button
               onClick={handleLogin}
-              disabled={!selectedExhibitor || loadingExhibitors}
+              disabled={!selectedExhibitor}
               className={`
                 w-full py-4 rounded-2xl font-semibold text-white transition-all duration-300
-                ${selectedExhibitor && !loadingExhibitors
+                ${selectedExhibitor
                   ? 'bg-gradient-to-r from-teal-600 to-teal-700 hover:shadow-lg hover:scale-105 active:scale-95'
                   : 'bg-gray-400 cursor-not-allowed'
                 }
@@ -494,29 +409,9 @@ function App() {
   }
 
   // Main Dashboard
-  const exhibitor = exhibitors.find(e => e.name === selectedExhibitor);
+  const exhibitor = exhibitors.find(e => e.id === selectedExhibitor);
   const deliveredOrders = orders.filter(o => o.status === 'delivered').length;
   const pendingOrders = orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').length;
-
-  if (!exhibitor) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center p-6">
-        <div className="text-center">
-          <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">Exhibitor Not Found</h3>
-          <p className="text-gray-600 mb-4">The selected exhibitor could not be found.</p>
-          <button 
-            onClick={() => setIsLoggedIn(false)}
-            className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
-          >
-            Go Back
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const iconData = generateExhibitorIcon(exhibitor.name, exhibitor.booth);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white p-6">
@@ -527,17 +422,13 @@ function App() {
             <div className="flex items-center space-x-6">
               <div className="flex items-center space-x-4">
                 <ExpoLogo size="small" />
-                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${iconData.colorScheme.bg} flex items-center justify-center shadow-lg border border-gray-300`}>
-                  <span className={`text-lg font-bold ${iconData.colorScheme.text}`}>
-                    {iconData.initials}
-                  </span>
+                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${exhibitor.color} flex items-center justify-center text-3xl shadow-lg`}>
+                  {exhibitor.avatar}
                 </div>
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">{exhibitor.name}</h1>
-                <p className="text-gray-600">
-                  <span className="text-teal-600">Booth {exhibitor.booth}</span> • Section {iconData.section}
-                </p>
+                <p className="text-gray-600">{exhibitor.company} • <span className="text-teal-600">Booth {exhibitor.booth}</span></p>
                 <div className="flex items-center space-x-4 mt-2">
                   <span className="text-sm text-teal-600 flex items-center space-x-1">
                     <Award className="w-4 h-4" />
@@ -600,7 +491,7 @@ function App() {
               <h3 className="text-lg font-semibold text-gray-900">In Progress</h3>
             </div>
             <div className="text-3xl font-bold text-purple-500">{pendingOrders}</div>
-            <div className="text-xs text-gray-500 mt-1">Auto-refresh every 2 min</div>
+            <div className="text-xs text-gray-500 mt-1">Active orders</div>
           </div>
         </div>
 
@@ -637,7 +528,6 @@ function App() {
                 <div key={notif.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
                   <div className="w-2 h-2 bg-teal-500 rounded-full animate-pulse"></div>
                   <span className="text-gray-800 flex-1">{notif.message}</span>
-                  <span className="text-xs text-gray-500">{notif.time}</span>
                 </div>
               ))}
             </div>
