@@ -279,7 +279,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, [API_BASE, generateNotifications, createFallbackOrders, loading, sortOrdersByStatus]);
+  }, [API_BASE, generateNotifications, createFallbackOrders, loading]); // CRITICAL FIX: Remove sortOrdersByStatus from dependencies
 
   // FIXED: Load exhibitors on component mount (like your working version)
   useEffect(() => {
@@ -287,7 +287,7 @@ function App() {
     fetchAbacusStatus();
   }, [fetchExhibitors, fetchAbacusStatus]);
 
-  // FIXED: Use working useEffect logic with exhibitors.find(e => e.name === selectedExhibitor)
+  // FIXED: Use exact working useEffect logic from your old version
   useEffect(() => {
     if (isLoggedIn && selectedExhibitor) {
       const exhibitor = exhibitors.find(e => e.name === selectedExhibitor);
@@ -302,7 +302,7 @@ function App() {
         return () => clearInterval(interval);
       }
     }
-  }, [isLoggedIn, selectedExhibitor, exhibitors, fetchOrders]);
+  }, [isLoggedIn, selectedExhibitor]); // CRITICAL FIX: Remove exhibitors and fetchOrders from dependencies
 
   const handleLogin = () => {
     if (selectedExhibitor) {
