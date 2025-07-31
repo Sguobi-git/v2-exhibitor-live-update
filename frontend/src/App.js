@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Lock, ArrowRight, Package, Truck, CheckCircle2, Clock, AlertCircle, MapPin, Star, Zap, Bell, RefreshCw, Building2, Award, Shield, Search, X } from 'lucide-react';
+import { Lock, ArrowRight, Package, Truck, CheckCircle2, Clock, AlertCircle, MapPin, Star, Zap, Bell, RefreshCw, Building2, Award, Shield } from 'lucide-react';
 
 function App() {
   const [selectedExhibitor, setSelectedExhibitor] = useState('');
@@ -11,7 +11,6 @@ function App() {
   const [abacusStatus, setAbacusStatus] = useState(null);
   const [exhibitors, setExhibitors] = useState([]); // Dynamic exhibitors from Google Sheets
   const [loadingExhibitors, setLoadingExhibitors] = useState(true);
-  const [searchTerm, setSearchTerm] = useState(''); // Search functionality
 
   // Professional icon generator based on booth number
   const generateExhibitorIcon = (exhibitorName, boothNumber) => {
@@ -34,7 +33,7 @@ function App() {
       'J': { bg: 'from-gray-500 to-gray-600', text: 'text-gray-100', accent: 'border-gray-300' },
     };
     
-    const colorScheme = Colors[] || Colors['A'];
+    const colorScheme = sectionColors[section] || sectionColors['A'];
     
     // Generate initials from company name (first letter of each word, max 2)
     const words = exhibitorName.split(' ').filter(word => word.length > 2); // Filter out small words like "Inc", "LLC"
@@ -51,7 +50,7 @@ function App() {
     return {
       initials: initials.toUpperCase(),
       colorScheme,
-      ,
+      section,
       number: boothNumber
     };
   };
@@ -239,7 +238,7 @@ function App() {
       status: realStatuses[i % realStatuses.length],
       order_date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
       comments: 'Coordinated by Expo Convention Contractors',
-      : ` ${Math.floor(Math.random() * 3) + 1}`,
+      section: `Section ${Math.floor(Math.random() * 3) + 1}`,
       data_source: 'Expo CCI Database',
       expo_processed: true
     }));
@@ -304,16 +303,6 @@ function App() {
       }
     }
   }, [isLoggedIn, selectedExhibitor]); // CRITICAL FIX: Remove exhibitors and fetchOrders from dependencies
-
-  // Filter exhibitors based on search term
-  const filteredExhibitors = exhibitors.filter(exhibitor =>
-    exhibitor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    exhibitor.booth.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const clearSearch = () => {
-    setSearchTerm('');
-  };
 
   const handleLogin = () => {
     if (selectedExhibitor) {
@@ -399,32 +388,8 @@ function App() {
                   Select Your Company
                 </label>
                 <span className="text-xs text-gray-500">
-                  {loadingExhibitors ? 'Loading...' : `${filteredExhibitors.length} of ${exhibitors.length} companies`}
+                  {loadingExhibitors ? 'Loading...' : `${exhibitors.length} companies`}
                 </span>
-              </div>
-
-              {/* Search Bar */}
-              <div className="relative mb-4">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-4 w-4 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search companies or booth numbers..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-2xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
-                />
-                {searchTerm && (
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                    <button
-                      onClick={clearSearch}
-                      className="text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                )}
               </div>
               
               {loadingExhibitors ? (
@@ -432,20 +397,9 @@ function App() {
                   <RefreshCw className="w-6 h-6 text-gray-400 animate-spin mx-auto mb-2" />
                   <p className="text-gray-500 text-sm">Loading exhibitors from Google Sheets...</p>
                 </div>
-              ) : filteredExhibitors.length === 0 ? (
-                <div className="text-center py-8">
-                  <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 text-sm">No companies found matching "{searchTerm}"</p>
-                  <button
-                    onClick={clearSearch}
-                    className="mt-2 text-teal-600 hover:text-teal-700 text-sm font-medium"
-                  >
-                    Clear search
-                  </button>
-                </div>
               ) : (
                 <div className="max-h-80 overflow-y-auto space-y-3 pr-2">
-                  {filteredExhibitors.map((exhibitor, index) => {
+                  {exhibitors.map((exhibitor, index) => {
                     const iconData = generateExhibitorIcon(exhibitor.name, exhibitor.booth);
                     
                     return (
@@ -574,7 +528,7 @@ function App() {
               <div className="min-w-0 flex-1">
                 <h1 className="text-xl md:text-3xl font-bold text-gray-900 truncate">{exhibitor.name}</h1>
                 <p className="text-sm md:text-base text-gray-600">
-                  <span className="text-teal-600">Booth {exhibitor.booth}</span> • Section {iconData.section}
+                  <span className="text-teal-600">Booth {exhibitor.booth}</span>
                 </p>
                 <div className="flex flex-wrap items-center gap-2 md:gap-4 mt-1 md:mt-2">
                   <span className="text-xs md:text-sm text-teal-600 flex items-center space-x-1">
@@ -582,11 +536,6 @@ function App() {
                     <span>Expo Convention Contractors</span>
                   </span>
                   <span className="text-xs md:text-sm text-gray-500">Live Order Tracking</span>
-                  {lastUpdated && (
-                    <span className="text-xs text-gray-400">
-                      Updated: {lastUpdated.toLocaleTimeString()}
-                    </span>
-                  )}
                 </div>
               </div>
             </div>
