@@ -311,6 +311,10 @@ function App() {
     exhibitor.booth.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const clearSearch = () => {
+    setSearchTerm('');
+  };
+
   const handleLogin = () => {
     if (selectedExhibitor) {
       setIsLoggedIn(true);
