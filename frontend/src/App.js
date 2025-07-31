@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Lock, ArrowRight, Package, Truck, CheckCircle2, Clock, AlertCircle, MapPin, Star, Zap, Bell, RefreshCw, Building2, Award, Shield } from 'lucide-react';
+import { Lock, ArrowRight, Package, Truck, CheckCircle2, Clock, AlertCircle, MapPin, Star, Zap, Bell, RefreshCw, Building2, Award, Shield, Search, X } from 'lucide-react';
 
 function App() {
   const [selectedExhibitor, setSelectedExhibitor] = useState('');
@@ -11,6 +11,7 @@ function App() {
   const [abacusStatus, setAbacusStatus] = useState(null);
   const [exhibitors, setExhibitors] = useState([]); // Dynamic exhibitors from Google Sheets
   const [loadingExhibitors, setLoadingExhibitors] = useState(true);
+  const [searchTerm, setSearchTerm] = useState(''); // Search functionality
 
   // Professional icon generator based on booth number
   const generateExhibitorIcon = (exhibitorName, boothNumber) => {
@@ -184,6 +185,16 @@ function App() {
       setLoadingExhibitors(false);
     }
   }, [API_BASE]);
+
+  // Filter exhibitors based on search term
+  const filteredExhibitors = exhibitors.filter(exhibitor =>
+    exhibitor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    exhibitor.booth.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const clearSearch = () => {
+    setSearchTerm('');
+  };
 
   const generateNotifications = useCallback((ordersData) => {
     const notifications = [];
@@ -388,8 +399,32 @@ function App() {
                   Select Your Company
                 </label>
                 <span className="text-xs text-gray-500">
-                  {loadingExhibitors ? 'Loading...' : `${exhibitors.length} companies`}
+                  {loadingExhibitors ? 'Loading...' : `${filteredExhibitors.length} of ${exhibitors.length} companies`}
                 </span>
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative mb-4">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search companies or booth numbers..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-2xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
+                />
+                {searchTerm && (
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <button
+                      onClick={clearSearch}
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
               </div>
               
               {loadingExhibitors ? (
@@ -397,9 +432,20 @@ function App() {
                   <RefreshCw className="w-6 h-6 text-gray-400 animate-spin mx-auto mb-2" />
                   <p className="text-gray-500 text-sm">Loading exhibitors from Google Sheets...</p>
                 </div>
+              ) : filteredExhibitors.length === 0 ? (
+                <div className="text-center py-8">
+                  <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">No companies found matching "{searchTerm}"</p>
+                  <button
+                    onClick={clearSearch}
+                    className="mt-2 text-teal-600 hover:text-teal-700 text-sm font-medium"
+                  >
+                    Clear search
+                  </button>
+                </div>
               ) : (
                 <div className="max-h-80 overflow-y-auto space-y-3 pr-2">
-                  {exhibitors.map((exhibitor, index) => {
+                  {filteredExhibitors.map((exhibitor, index) => {
                     const iconData = generateExhibitorIcon(exhibitor.name, exhibitor.booth);
                     
                     return (
