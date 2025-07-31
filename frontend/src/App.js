@@ -34,7 +34,7 @@ function App() {
       'J': { bg: 'from-gray-500 to-gray-600', text: 'text-gray-100', accent: 'border-gray-300' },
     };
     
-    const colorScheme = sectionColors[section] || sectionColors['A'];
+    const colorScheme = Colors[] || Colors['A'];
     
     // Generate initials from company name (first letter of each word, max 2)
     const words = exhibitorName.split(' ').filter(word => word.length > 2); // Filter out small words like "Inc", "LLC"
@@ -51,7 +51,7 @@ function App() {
     return {
       initials: initials.toUpperCase(),
       colorScheme,
-      section,
+      ,
       number: boothNumber
     };
   };
@@ -239,7 +239,7 @@ function App() {
       status: realStatuses[i % realStatuses.length],
       order_date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
       comments: 'Coordinated by Expo Convention Contractors',
-      section: `Section ${Math.floor(Math.random() * 3) + 1}`,
+      : ` ${Math.floor(Math.random() * 3) + 1}`,
       data_source: 'Expo CCI Database',
       expo_processed: true
     }));
@@ -478,7 +478,6 @@ function App() {
                               <h3 className="font-semibold text-gray-900 truncate">{exhibitor.name}</h3>
                               <div className="flex items-center space-x-3 mt-1">
                                 <p className="text-xs text-teal-600 font-medium">Booth {exhibitor.booth}</p>
-                                <p className="text-xs text-gray-500">Section {iconData.section}</p>
                               </div>
                               {/* Show order stats if available */}
                               {exhibitor.total_orders !== undefined && (
