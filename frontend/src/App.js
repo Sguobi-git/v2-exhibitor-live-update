@@ -108,7 +108,7 @@ function App() {
     });
   };
 
-  const API_BASE = 'https://v3-exhibitor-live-update.onrender.com/api';
+  const API_BASE = 'https://exhibitor-backend.onrender.com/api';
 
   // Actual Expo CCI Logo Component
   const ExpoLogo = ({ size = "large", color = "black" }) => {
@@ -128,7 +128,7 @@ function App() {
     );
   };
 
-  // KEPT EXACTLY AS YOUR WORKING VERSION
+  // FIXED: Use working fetchAbacusStatus logic from your old version
   const fetchAbacusStatus = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE}/abacus-status`);
@@ -140,7 +140,7 @@ function App() {
     }
   }, [API_BASE]);
 
-  // KEPT EXACTLY AS YOUR WORKING VERSION (with only API_BASE URL updated)
+  // FIXED: Dynamic exhibitor loading with proper fallback (like your working version)
   const fetchExhibitors = useCallback(async (forceRefresh = false) => {
     setLoadingExhibitors(true);
     try {
@@ -255,7 +255,7 @@ function App() {
     }));
   }, []);
 
-  // KEPT EXACTLY AS YOUR WORKING VERSION (with only API_BASE URL updated)
+  // FIXED: Use exact working fetchOrders logic from your old version
   const fetchOrders = useCallback(async (exhibitorName, forceRefresh = false) => {
     if (loading) return;
     
@@ -290,15 +290,15 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, [API_BASE, generateNotifications, createFallbackOrders, loading]);
+  }, [API_BASE, generateNotifications, createFallbackOrders, loading]); // CRITICAL FIX: Remove sortOrdersByStatus from dependencies
 
-  // ONLY CHANGE: Force refresh exhibitors on component mount
+  // FIXED: Load exhibitors on component mount (like your working version)
   useEffect(() => {
-    fetchExhibitors(true); // <- ONLY CHANGE: Added 'true' to force refresh
+    fetchExhibitors();
     fetchAbacusStatus();
   }, [fetchExhibitors, fetchAbacusStatus]);
 
-  // KEPT EXACTLY AS YOUR WORKING VERSION
+  // FIXED: Use exact working useEffect logic from your old version
   useEffect(() => {
     if (isLoggedIn && selectedExhibitor) {
       const exhibitor = exhibitors.find(e => e.name === selectedExhibitor);
@@ -313,7 +313,7 @@ function App() {
         return () => clearInterval(interval);
       }
     }
-  }, [isLoggedIn, selectedExhibitor]);
+  }, [isLoggedIn, selectedExhibitor]); // CRITICAL FIX: Remove exhibitors and fetchOrders from dependencies
 
   const handleLogin = () => {
     if (selectedExhibitor) {
@@ -321,7 +321,6 @@ function App() {
     }
   };
 
-  // KEPT EXACTLY AS YOUR WORKING VERSION
   const handleRefresh = () => {
     if (selectedExhibitor && !loading) {
       const exhibitor = exhibitors.find(e => e.name === selectedExhibitor);
@@ -587,7 +586,7 @@ function App() {
               </div>
             </div>
             
-            {/* Right side - Action buttons - KEPT EXACTLY AS YOUR WORKING VERSION */}
+            {/* Right side - Action buttons */}
             <div className="flex items-center justify-end space-x-2 md:space-x-4 flex-shrink-0">
               <button 
                 onClick={handleRefresh}
